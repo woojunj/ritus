@@ -230,12 +230,12 @@ describe("전반", () => {
   });
 });
 
-describe("구간 반복 설정", () => {
+describe("번갈아 반복 설정", () => {
   test("기본값은 꺼짐이고, 꺼진 상태에서는 다이얼 두 개가 보이지 않는다", () => {
     render(<FocusTimer />);
 
     expect(
-      screen.getByRole("button", { name: "구간 반복" })
+      screen.getByRole("button", { name: "번갈아 반복" })
     ).toHaveAttribute("aria-pressed", "false");
     expect(screen.queryByLabelText("첫 구간(초)")).toBeNull();
   });
@@ -243,18 +243,18 @@ describe("구간 반복 설정", () => {
   test("스위치를 켜면 두 구간의 숫자 칸과 요약 문구가 보인다", () => {
     render(<FocusTimer />);
 
-    fireEvent.click(screen.getByRole("button", { name: "구간 반복" }));
+    fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
 
     expect(screen.getByLabelText("첫 구간(초)")).toHaveValue(60);
     expect(screen.getByLabelText("두 번째 구간(초)")).toHaveValue(60);
     expect(screen.getByTestId("interval-summary")).toHaveTextContent(
-      "총 25:00 · 01:00 13번 / 01:00 12번"
+      "총 26:00 · 01:00 13번 / 01:00 13번"
     );
   });
 
   test("첫 구간을 바꾸면 두 번째 구간도 같이 바뀐다", () => {
     render(<FocusTimer />);
-    fireEvent.click(screen.getByRole("button", { name: "구간 반복" }));
+    fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
 
     fireEvent.change(screen.getByLabelText("첫 구간(초)"), {
       target: { value: "120" },
@@ -265,7 +265,7 @@ describe("구간 반복 설정", () => {
 
   test("두 번째 구간을 직접 바꾸면 그 뒤로는 첫 구간과 따로 논다", () => {
     render(<FocusTimer />);
-    fireEvent.click(screen.getByRole("button", { name: "구간 반복" }));
+    fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
 
     fireEvent.change(screen.getByLabelText("두 번째 구간(초)"), {
       target: { value: "30" },
@@ -279,7 +279,7 @@ describe("구간 반복 설정", () => {
 
   test("3초 미만이나 1시간 초과로는 정할 수 없다", () => {
     render(<FocusTimer />);
-    fireEvent.click(screen.getByRole("button", { name: "구간 반복" }));
+    fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
 
     const firstInput = screen.getByLabelText("첫 구간(초)");
     fireEvent.change(firstInput, { target: { value: "1" } });
@@ -292,13 +292,13 @@ describe("구간 반복 설정", () => {
   });
 });
 
-describe("구간 반복 진행", () => {
+describe("번갈아 반복 진행", () => {
   function startIntervalSession() {
     const minutesInput = screen.getByLabelText("시간(분)");
     fireEvent.change(minutesInput, { target: { value: "1" } });
     fireEvent.blur(minutesInput);
 
-    fireEvent.click(screen.getByRole("button", { name: "구간 반복" }));
+    fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
     fireEvent.change(screen.getByLabelText("첫 구간(초)"), {
       target: { value: "30" },
     });
@@ -344,7 +344,7 @@ describe("구간 반복 진행", () => {
     expect(indicator).toHaveTextContent("00:10");
   });
 
-  test("총 시간(1분)에 닿아도 진행 중인 구간을 채우고 80초에 끝난다", () => {
+  test("총 시간(1분)에 닿아도 그 사이클의 구간2까지 마저 채우고 100초에 끝난다", () => {
     render(<FocusTimer />);
     startIntervalSession();
 
@@ -354,20 +354,20 @@ describe("구간 반복 진행", () => {
     expect(screen.queryByTestId("end-screen")).toBeNull();
 
     act(() => {
-      vi.advanceTimersByTime(20_000);
+      vi.advanceTimersByTime(40_000);
     });
     expect(screen.getByTestId("end-screen")).toBeInTheDocument();
   });
 });
 
-describe("구간 반복 일시정지", () => {
+describe("번갈아 반복 일시정지", () => {
   test("일시정지하면 지금 구간의 남은 시간도 함께 멈춘다", () => {
     render(<FocusTimer />);
 
     const minutesInput = screen.getByLabelText("시간(분)");
     fireEvent.change(minutesInput, { target: { value: "1" } });
     fireEvent.blur(minutesInput);
-    fireEvent.click(screen.getByRole("button", { name: "구간 반복" }));
+    fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
     fireEvent.change(screen.getByLabelText("첫 구간(초)"), {
       target: { value: "30" },
     });
