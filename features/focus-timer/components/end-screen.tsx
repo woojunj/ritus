@@ -1,5 +1,7 @@
 "use client";
 
+import { RotateCcw } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 
 import { formatClock } from "../lib/time";
@@ -52,7 +54,8 @@ export function EndScreen({
           onRestart();
         }}
       >
-        다시 시작
+        <RotateCcw aria-hidden="true" />
+        <span className="sr-only">다시 시작</span>
       </Button>
     </div>
   );

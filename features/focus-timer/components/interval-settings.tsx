@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Repeat } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { formatCycleSummary, type IntervalPlan } from "../lib/cycle";
+import { formatCycleSummary, type IntervalPlan, type SliceKind } from "../lib/cycle";
+import { SLICE_BADGE_CLASS, SLICE_NUMBER } from "../lib/slice-display";
 import {
   MAX_INTERVAL_SECONDS,
   MIN_INTERVAL_SECONDS,
@@ -38,7 +39,8 @@ export function IntervalSettings({
         aria-pressed={enabled}
         onClick={onToggleEnabled}
       >
-        구간 반복
+        <Repeat aria-hidden="true" />
+        <span className="sr-only">번갈아 반복</span>
       </Button>
 
       {enabled && (
@@ -78,12 +80,14 @@ function IntervalFields({
     <div className="flex w-full flex-col items-center gap-4">
       <div className="flex flex-wrap items-center justify-center gap-6">
         <SecondsField
+          order="first"
           label="첫 구간"
           ariaLabel="첫 구간(초)"
           value={plan.first}
           onChange={handleFirstChange}
         />
         <SecondsField
+          order="second"
           label="두 번째 구간"
           ariaLabel="두 번째 구간(초)"
           value={plan.second}
@@ -98,11 +102,13 @@ function IntervalFields({
 }
 
 function SecondsField({
+  order,
   label,
   ariaLabel,
   value,
   onChange,
 }: {
+  order: SliceKind;
   label: string;
   ariaLabel: string;
   value: number;
@@ -124,9 +130,23 @@ function SecondsField({
   };
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <IntervalDial seconds={value} onChange={onChange} ariaLabel={`${label} 다이얼`} />
-      <span className="text-xs text-muted-foreground">{label}</span>
+    <div data-order={order} className="flex flex-col items-center gap-2">
+      <div className="relative flex items-center justify-center">
+        <IntervalDial seconds={value} onChange={onChange} ariaLabel={`${label} 다이얼`} />
+        <div className="pointer-events-none absolute flex flex-col items-center">
+          <span className="text-lg font-semibold tabular-nums text-foreground">
+            {value}
+          </span>
+          <span className="text-[10px] text-muted-foreground">초</span>
+        </div>
+      </div>
+      <span
+        aria-hidden="true"
+        className={`flex size-5 items-center justify-center rounded-full text-xs font-semibold ${SLICE_BADGE_CLASS[order]}`}
+      >
+        {SLICE_NUMBER[order]}
+      </span>
+      <span className="sr-only">{label}</span>
       <div className="flex items-center gap-1">
         <Input
           type="number"

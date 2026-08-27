@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,7 +100,8 @@ export function SetupScreen({
       />
 
       <Button type="button" size="lg" className="w-full" onClick={onStart}>
-        시작
+        <Play aria-hidden="true" />
+        <span className="sr-only">시작</span>
       </Button>
     </div>
   );
