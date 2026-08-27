@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { playChime } from "./lib/chime";
+import { sessionEndSeconds, sliceAt, type IntervalPlan } from "./lib/cycle";
 import { pickEncouragement } from "./lib/encouragements";
 import { clampMinutes, formatTabTitle } from "./lib/time";
 import { EndScreen } from "./components/end-screen";
@@ -14,6 +15,7 @@ import { ThemeToggle } from "./components/theme-toggle";
 type Phase = "setup" | "running" | "paused" | "ended";
 
 const DEFAULT_MINUTES = 25;
+const DEFAULT_INTERVAL_SECONDS = 60;
 const TICK_MS = 250;
 const BASE_TITLE = "집중 세션 타이머";
 
@@ -24,6 +26,11 @@ function secondsRemaining(target: number): number {
 export function FocusTimer() {
   const [title, setTitle] = useState("");
   const [minutes, setMinutes] = useState(DEFAULT_MINUTES);
+  const [intervalEnabled, setIntervalEnabled] = useState(false);
+  const [intervalPlan, setIntervalPlan] = useState<IntervalPlan>({
+    first: DEFAULT_INTERVAL_SECONDS,
+    second: DEFAULT_INTERVAL_SECONDS,
+  });
   const [muted, setMuted] = useState(false);
   const [phase, setPhase] = useState<Phase>("setup");
   const [remainingSeconds, setRemainingSeconds] = useState(
@@ -31,10 +38,22 @@ export function FocusTimer() {
   );
   const [encouragement, setEncouragement] = useState("");
   const [blinking, setBlinking] = useState(false);
+  // 총 시간에 닿는 순간 진행 중이던 구간을 채우고 끝나므로, 실제 세션 길이는
+  // (구간 반복이 꺼져 있으면 minutes*60과 같지만) minutes*60보다 길어질 수
+  // 있다. 지금 어느 구간인지는 이 값에서 remainingSeconds를 뺀 경과 시간으로
+  // 역산한다.
+  const [sessionTotalSeconds, setSessionTotalSeconds] = useState(
+    DEFAULT_MINUTES * 60
+  );
 
   const targetRef = useRef<number | null>(null);
   const remainingAtPauseRef = useRef(DEFAULT_MINUTES * 60);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prevSliceKindRef = useRef<"first" | "second" | null>(null);
+  // tick()은 setInterval에 한 번 넘겨진 클로저라 매 렌더의 최신 state를 보지
+  // 못한다. sessionTotalSeconds state는 화면 표시에, 이 ref는 tick 안의 계산에
+  // 쓴다. handleStart에서 둘을 함께 갱신한다.
+  const sessionTotalSecondsRef = useRef(DEFAULT_MINUTES * 60);
 
   const clearTick = useCallback(() => {
     if (intervalRef.current !== null) {
@@ -57,10 +76,20 @@ export function FocusTimer() {
     if (targetRef.current === null) return;
     const remaining = secondsRemaining(targetRef.current);
     setRemainingSeconds(remaining);
+    if (intervalEnabled && remaining > 0) {
+      const elapsed = sessionTotalSecondsRef.current - remaining;
+      const kind = sliceAt(elapsed, intervalPlan).kind;
+      if (prevSliceKindRef.current !== null && kind !== prevSliceKindRef.current) {
+        playChime(kind === "first" ? "interval-first" : "interval-second", {
+          muted,
+        });
+      }
+      prevSliceKindRef.current = kind;
+    }
     if (remaining <= 0) {
       finishSession();
     }
-  }, [finishSession]);
+  }, [finishSession, intervalEnabled, intervalPlan, muted]);
 
   const startTicking = useCallback(() => {
     clearTick();
@@ -69,12 +98,18 @@ export function FocusTimer() {
 
   const handleStart = useCallback(() => {
     const totalSeconds = minutes * 60;
-    targetRef.current = Date.now() + totalSeconds * 1000;
-    setRemainingSeconds(totalSeconds);
+    const effectiveTotalSeconds = intervalEnabled
+      ? sessionEndSeconds(totalSeconds, intervalPlan)
+      : totalSeconds;
+    sessionTotalSecondsRef.current = effectiveTotalSeconds;
+    setSessionTotalSeconds(effectiveTotalSeconds);
+    prevSliceKindRef.current = intervalEnabled ? "first" : null;
+    targetRef.current = Date.now() + effectiveTotalSeconds * 1000;
+    setRemainingSeconds(effectiveTotalSeconds);
     setPhase("running");
     playChime("start", { muted });
     startTicking();
-  }, [minutes, muted, startTicking]);
+  }, [minutes, intervalEnabled, intervalPlan, muted, startTicking]);
 
   const handleTogglePause = useCallback(() => {
     if (phase === "running" && targetRef.current !== null) {
@@ -97,6 +132,10 @@ export function FocusTimer() {
 
   const handleMinutesChange = useCallback((next: number) => {
     setMinutes(clampMinutes(next));
+  }, []);
+
+  const handleToggleIntervalEnabled = useCallback(() => {
+    setIntervalEnabled((value) => !value);
   }, []);
 
   useEffect(() => clearTick, [clearTick]);
@@ -122,6 +161,10 @@ export function FocusTimer() {
             minutes={minutes}
             onTitleChange={setTitle}
             onMinutesChange={handleMinutesChange}
+            intervalEnabled={intervalEnabled}
+            onToggleIntervalEnabled={handleToggleIntervalEnabled}
+            intervalPlan={intervalPlan}
+            onIntervalPlanChange={setIntervalPlan}
             onStart={handleStart}
           />
         )}
@@ -129,10 +172,18 @@ export function FocusTimer() {
           <RunningScreen
             title={title}
             remainingSeconds={remainingSeconds}
-            totalSeconds={minutes * 60}
+            totalSeconds={sessionTotalSeconds}
             phase={phase}
             onTogglePause={handleTogglePause}
             onQuit={handleQuit}
+            slice={
+              intervalEnabled
+                ? sliceAt(
+                    sessionTotalSeconds - remainingSeconds,
+                    intervalPlan
+                  )
+                : undefined
+            }
           />
         )}
         {phase === "ended" && (

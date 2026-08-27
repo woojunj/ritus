@@ -54,3 +54,33 @@ describe("playChime", () => {
     ).not.toThrow();
   });
 });
+
+describe("구간 전환음", () => {
+  test("첫 구간 전환음이 두 번째 구간 전환음보다 높다", () => {
+    const first = createFakeAudioContext();
+    playChime("interval-first", {
+      muted: false,
+      audioContextCtor: first.Ctor as never,
+    });
+
+    const second = createFakeAudioContext();
+    playChime("interval-second", {
+      muted: false,
+      audioContextCtor: second.Ctor as never,
+    });
+
+    expect(first.oscillator.frequency.value).toBeGreaterThan(
+      second.oscillator.frequency.value
+    );
+  });
+
+  test("두 전환음은 시작·종료음과도 서로 다르다", () => {
+    const values: number[] = [];
+    for (const kind of ["start", "end", "interval-first", "interval-second"] as const) {
+      const { Ctor, oscillator } = createFakeAudioContext();
+      playChime(kind, { muted: false, audioContextCtor: Ctor as never });
+      values.push(oscillator.frequency.value);
+    }
+    expect(new Set(values).size).toBe(values.length);
+  });
+});

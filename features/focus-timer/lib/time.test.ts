@@ -1,11 +1,14 @@
 import { describe, expect, test } from "vitest";
 
 import {
+  clampIntervalSeconds,
   clampMinutes,
   formatClock,
   formatTabTitle,
   minutesToAngle,
   angleToMinutes,
+  secondsToAngle,
+  angleToSeconds,
 } from "./time";
 
 describe("formatClock", () => {
@@ -62,5 +65,47 @@ describe("minutesToAngle / angleToMinutes", () => {
   test("angleToMinutes는 항상 1~60 범위로 잘린다", () => {
     expect(angleToMinutes(-10)).toBeGreaterThanOrEqual(1);
     expect(angleToMinutes(1000)).toBeLessThanOrEqual(60);
+  });
+});
+
+describe("clampIntervalSeconds", () => {
+  test("3초 미만은 3초로 붙는다", () => {
+    expect(clampIntervalSeconds(0)).toBe(3);
+    expect(clampIntervalSeconds(2)).toBe(3);
+  });
+
+  test("1시간을 넘으면 3600초로 붙는다", () => {
+    expect(clampIntervalSeconds(3601)).toBe(3600);
+  });
+
+  test("범위 안에서는 1초 단위로 반올림한다", () => {
+    expect(clampIntervalSeconds(3)).toBe(3);
+    expect(clampIntervalSeconds(120.4)).toBe(120);
+    expect(clampIntervalSeconds(59.6)).toBe(60);
+  });
+});
+
+describe("secondsToAngle / angleToSeconds", () => {
+  test("한 바퀴가 60초다", () => {
+    expect(secondsToAngle(3)).toBe(18);
+    expect(secondsToAngle(30)).toBe(180);
+    expect(secondsToAngle(60)).toBe(0);
+  });
+
+  test("60초를 넘는 값도 한 바퀴를 다 채운 채로 남는다", () => {
+    expect(secondsToAngle(120)).toBe(0);
+    expect(secondsToAngle(150)).toBe(0);
+  });
+
+  test("각도에서 초로 되돌리면 같은 값을 가리킨다", () => {
+    expect(angleToSeconds(18)).toBe(3);
+    expect(angleToSeconds(180)).toBe(30);
+    expect(angleToSeconds(0)).toBe(60);
+    expect(angleToSeconds(360)).toBe(60);
+  });
+
+  test("3초 미만을 가리키는 각도는 3초로 붙는다", () => {
+    expect(angleToSeconds(6)).toBe(3);
+    expect(angleToSeconds(12)).toBe(3);
   });
 });

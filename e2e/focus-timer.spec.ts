@@ -66,3 +66,32 @@ test("세션 도중 그만두면 메시지 없이 처음 화면으로 돌아간�
     page.getByText(/고생했다|수고했다|잘 했다|오늘도 해냈다|충분히 잘하고 있다/)
   ).toHaveCount(0);
 });
+
+test("두 구간 반복이 총 시간을 넘겨 진행 중인 구간을 채우고 끝난다", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await page.goto("/");
+
+  await page.getByLabel("시간(분)").fill("1");
+  await page.getByRole("button", { name: "구간 반복" }).click();
+  await page.getByLabel("첫 구간(초)").fill("30");
+  await page.getByLabel("두 번째 구간(초)").fill("20");
+  await page.getByRole("button", { name: "시작" }).click();
+
+  const indicator = page.getByTestId("slice-indicator");
+  await expect(indicator).toContainText("구간 1");
+
+  // 첫 구간(30초)이 끝나면 두 번째 구간으로 바뀐다.
+  await page.clock.fastForward(30_000);
+  await expect(indicator).toContainText("구간 2");
+
+  // 총 시간(60초)에 닿아도 진행 중인 첫 구간(50~80초)을 채우느라 끝나지 않는다.
+  await page.clock.fastForward(30_000);
+  await expect(page.getByTestId("end-screen")).toHaveCount(0);
+  await expect(indicator).toContainText("구간 1");
+
+  // 80초에 실제로 끝난다.
+  await page.clock.fastForward(20_000);
+  await expect(page.getByTestId("end-screen")).toBeVisible();
+});

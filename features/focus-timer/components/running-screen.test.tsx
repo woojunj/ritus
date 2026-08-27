@@ -56,3 +56,25 @@ describe("숫자 가리기", () => {
     expect(screen.getByRole("timer")).toHaveTextContent("00:30");
   });
 });
+
+describe("구간 반복 표시", () => {
+  test("slice가 없으면 구간 표시가 보이지 않는다", () => {
+    renderScreen();
+
+    expect(screen.queryByTestId("slice-indicator")).toBeNull();
+  });
+
+  test("slice가 있으면 지금 구간과 구간의 남은 시간이 보인다", () => {
+    renderScreen({ slice: { kind: "first", remainingSeconds: 45 } });
+
+    const indicator = screen.getByTestId("slice-indicator");
+    expect(indicator).toHaveTextContent("구간 1");
+    expect(indicator).toHaveTextContent("00:45");
+  });
+
+  test("두 번째 구간이면 구간 2로 보인다", () => {
+    renderScreen({ slice: { kind: "second", remainingSeconds: 12 } });
+
+    expect(screen.getByTestId("slice-indicator")).toHaveTextContent("구간 2");
+  });
+});
