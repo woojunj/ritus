@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { formatCycleSummary, type IntervalPlan } from "../lib/cycle";
-import { clampIntervalSeconds } from "../lib/time";
+import {
+  MAX_INTERVAL_SECONDS,
+  MIN_INTERVAL_SECONDS,
+  clampIntervalSeconds,
+} from "../lib/time";
 import { IntervalDial } from "./interval-dial";
 
 interface IntervalSettingsProps {
@@ -127,8 +131,8 @@ function SecondsField({
         <Input
           type="number"
           aria-label={ariaLabel}
-          min={3}
-          max={3600}
+          min={MIN_INTERVAL_SECONDS}
+          max={MAX_INTERVAL_SECONDS}
           value={text}
           onChange={(event) => {
             const raw = event.target.value;
