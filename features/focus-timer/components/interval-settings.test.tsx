@@ -17,10 +17,12 @@ function renderSettings(overrides: Partial<Parameters<typeof IntervalSettings>[0
 }
 
 describe("번갈아 반복 토글", () => {
-  test("반복 아이콘만 보이고, 글자는 스크린리더에서만 읽힌다", () => {
+  test("1, 2 배지와 화살표가 보이고, 글자는 스크린리더에서만 읽힌다", () => {
     renderSettings();
 
     const button = screen.getByRole("button", { name: "번갈아 반복" });
+    expect(button).toHaveTextContent("1");
+    expect(button).toHaveTextContent("2");
     expect(button.querySelector("svg")).toBeInTheDocument();
     expect(button.querySelector(".sr-only")).toHaveTextContent("번갈아 반복");
   });

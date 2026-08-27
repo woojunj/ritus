@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Repeat } from "lucide-react";
+import { ArrowLeftRight, ChevronDown, ChevronUp } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,19 @@ export function IntervalSettings({
         aria-pressed={enabled}
         onClick={onToggleEnabled}
       >
-        <Repeat aria-hidden="true" />
+        <span aria-hidden="true" className="flex items-center gap-1">
+          <span
+            className={`flex size-4 items-center justify-center rounded-full text-[10px] font-semibold ${SLICE_BADGE_CLASS.first}`}
+          >
+            {SLICE_NUMBER.first}
+          </span>
+          <ArrowLeftRight className="size-3" />
+          <span
+            className={`flex size-4 items-center justify-center rounded-full text-[10px] font-semibold ${SLICE_BADGE_CLASS.second}`}
+          >
+            {SLICE_NUMBER.second}
+          </span>
+        </span>
         <span className="sr-only">번갈아 반복</span>
       </Button>
 
