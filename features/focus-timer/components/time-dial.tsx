@@ -2,6 +2,7 @@
 
 import { useCallback, useRef } from "react";
 
+import { ringGeometry } from "../lib/ring";
 import { angleToMinutes, minutesToAngle } from "../lib/time";
 
 interface TimeDialProps {
@@ -93,6 +94,7 @@ export function TimeDial({ minutes, onChange, disabled }: TimeDialProps) {
 
   const knob = pointOnCircle(minutesToAngle(minutes));
   const progressAngle = minutesToAngle(minutes) || 360;
+  const { circumference, offset } = ringGeometry(RADIUS, progressAngle / 360);
 
   return (
     <svg
@@ -127,10 +129,8 @@ export function TimeDial({ minutes, onChange, disabled }: TimeDialProps) {
         className="fill-none stroke-primary"
         strokeWidth={10}
         strokeLinecap="round"
-        strokeDasharray={2 * Math.PI * RADIUS}
-        strokeDashoffset={
-          2 * Math.PI * RADIUS * (1 - progressAngle / 360)
-        }
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
         transform={`rotate(-90 ${CENTER} ${CENTER})`}
       />
       <circle

@@ -127,6 +127,7 @@ export function FocusTimer() {
           <RunningScreen
             title={title}
             remainingSeconds={remainingSeconds}
+            totalSeconds={minutes * 60}
             phase={phase}
             onTogglePause={handleTogglePause}
             onQuit={handleQuit}

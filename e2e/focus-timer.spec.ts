@@ -12,8 +12,21 @@ test("설정부터 종료·재시작까지 세션 흐름이 이어진다", async
   await expect(clock).toHaveText("01:00");
   await expect(page).toHaveTitle("01:00 · 결제 모듈 리팩터링");
 
+  const ring = page.getByTestId("progress-ring-value");
+  const circumference = Number(
+    await ring.getAttribute("data-circumference")
+  );
+  await expect
+    .poll(async () => Number(await ring.getAttribute("stroke-dashoffset")))
+    .toBeCloseTo(0, 1);
+
   await page.clock.fastForward(10_000);
   await expect(clock).toHaveText("00:50");
+  // 50/60이 남았으니 링의 1/6만큼 비어야 한다(반대 방향으로 채워진 게 아니라
+  // 시간이 줄수록 링도 함께 줄어드는지 확인).
+  await expect
+    .poll(async () => Number(await ring.getAttribute("stroke-dashoffset")))
+    .toBeCloseTo(circumference / 6, 1);
 
   await page.getByRole("button", { name: "일시정지" }).click();
   const pausedText = await clock.textContent();
