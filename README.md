@@ -1,10 +1,12 @@
-# Claude Code Playbook Template
+# ritus
 
 [![Claude Hunt](https://img.shields.io/badge/Claude_Hunt-강의-000000)](https://www.claude-hunt.com)
 [![Docs](https://img.shields.io/badge/docs-claude--hunt-2563eb)](https://docs.claude-hunt.com)
 
-> [Claude Hunt](https://www.claude-hunt.com) 강의용 Next.js 16 + React 19 템플릿.
-> 사용법과 워크플로우 문서는 [docs.claude-hunt.com](https://docs.claude-hunt.com)에서 확인하세요.
+책상 앞 몰입, 명상, 운동처럼 정해 둔 시간 동안 한 가지에 머물고 싶을 때 쓰는 웹 타이머입니다. 지금 하기로 한 것을 화면으로 붙잡고, 구간 전환과 세션 종료는 소리로 알립니다. 자세한 제품 정의는 [PRODUCT.md](./PRODUCT.md)에 있습니다.
+
+> 이 저장소는 [Claude Hunt](https://www.claude-hunt.com) 강의용 Next.js 16 + React 19 템플릿 위에서 개발합니다.
+> 템플릿 사용법과 워크플로우 문서는 [docs.claude-hunt.com](https://docs.claude-hunt.com)에서 확인하세요.
 
 ## 기술 스택
 
