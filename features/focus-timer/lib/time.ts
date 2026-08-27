@@ -1,7 +1,7 @@
 const MIN_MINUTES = 1;
 const MAX_MINUTES = 60;
-const MIN_INTERVAL_SECONDS = 3;
-const MAX_INTERVAL_SECONDS = 3600;
+export const MIN_INTERVAL_SECONDS = 3;
+export const MAX_INTERVAL_SECONDS = 3600;
 
 export function formatClock(totalSeconds: number): string {
   const clamped = Math.max(0, Math.floor(totalSeconds));
