@@ -5,7 +5,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+import type { IntervalPlan } from "../lib/cycle";
 import { clampMinutes } from "../lib/time";
+import { IntervalSettings } from "./interval-settings";
 import { TimeDial } from "./time-dial";
 
 interface SetupScreenProps {
@@ -13,6 +15,10 @@ interface SetupScreenProps {
   minutes: number;
   onTitleChange: (title: string) => void;
   onMinutesChange: (minutes: number) => void;
+  intervalEnabled: boolean;
+  onToggleIntervalEnabled: () => void;
+  intervalPlan: IntervalPlan;
+  onIntervalPlanChange: (plan: IntervalPlan) => void;
   onStart: () => void;
 }
 
@@ -21,6 +27,10 @@ export function SetupScreen({
   minutes,
   onTitleChange,
   onMinutesChange,
+  intervalEnabled,
+  onToggleIntervalEnabled,
+  intervalPlan,
+  onIntervalPlanChange,
   onStart,
 }: SetupScreenProps) {
   // 로컬 텍스트로 들고 있다가 유효한 값일 때만 커밋한다.
@@ -79,6 +89,14 @@ export function SetupScreen({
           className="w-16 text-center"
         />
       </label>
+
+      <IntervalSettings
+        enabled={intervalEnabled}
+        onToggleEnabled={onToggleIntervalEnabled}
+        plan={intervalPlan}
+        onPlanChange={onIntervalPlanChange}
+        totalSeconds={minutes * 60}
+      />
 
       <Button type="button" size="lg" className="w-full" onClick={onStart}>
         시작

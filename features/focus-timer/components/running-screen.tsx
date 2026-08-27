@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { formatClock } from "../lib/time";
 import { ProgressRing } from "./progress-ring";
 
+interface CurrentSlice {
+  kind: "first" | "second";
+  remainingSeconds: number;
+}
+
 interface RunningScreenProps {
   title: string;
   remainingSeconds: number;
@@ -15,7 +20,14 @@ interface RunningScreenProps {
   phase: "running" | "paused";
   onTogglePause: () => void;
   onQuit: () => void;
+  /** 두 구간 반복이 켜졌을 때 지금 구간의 정보. 꺼졌으면 undefined. */
+  slice?: CurrentSlice;
 }
+
+const SLICE_LABEL: Record<CurrentSlice["kind"], string> = {
+  first: "구간 1",
+  second: "구간 2",
+};
 
 export function RunningScreen({
   title,
@@ -24,6 +36,7 @@ export function RunningScreen({
   phase,
   onTogglePause,
   onQuit,
+  slice,
 }: RunningScreenProps) {
   const [showClock, setShowClock] = useState(true);
   const fraction = totalSeconds > 0 ? remainingSeconds / totalSeconds : 0;
@@ -57,6 +70,15 @@ export function RunningScreen({
           <Eye aria-hidden="true" className="size-4" />
         )}
       </Button>
+
+      {slice && (
+        <p
+          data-testid="slice-indicator"
+          className="text-sm text-muted-foreground"
+        >
+          {SLICE_LABEL[slice.kind]} · {formatClock(slice.remainingSeconds)}
+        </p>
+      )}
 
       {title.trim() && (
         <p className="max-w-xl text-center text-lg text-muted-foreground sm:text-2xl">
