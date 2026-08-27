@@ -9,6 +9,7 @@ import { EndScreen } from "./components/end-screen";
 import { MuteToggle } from "./components/mute-toggle";
 import { RunningScreen } from "./components/running-screen";
 import { SetupScreen } from "./components/setup-screen";
+import { ThemeToggle } from "./components/theme-toggle";
 
 type Phase = "setup" | "running" | "paused" | "ended";
 
@@ -110,7 +111,8 @@ export function FocusTimer() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex justify-end p-4">
+      <div className="flex justify-end gap-2 p-4">
+        <ThemeToggle />
         <MuteToggle muted={muted} onToggle={() => setMuted((m) => !m)} />
       </div>
       <div className="flex flex-1 items-center justify-center p-6 sm:p-16">
