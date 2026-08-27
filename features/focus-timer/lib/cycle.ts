@@ -53,22 +53,17 @@ export function countSlices(
   if (elapsedFullCycles >= totalSeconds) {
     return { first: fullCycles, second: fullCycles, endSeconds: elapsedFullCycles };
   }
-  if (elapsedFullCycles + plan.first >= totalSeconds) {
-    return {
-      first: fullCycles + 1,
-      second: fullCycles,
-      endSeconds: elapsedFullCycles + plan.first,
-    };
-  }
+  // 총 시간이 이 사이클 안에서 끝나더라도, 구간1만 채우고 구간2를 건너뛰지 않도록
+  // 구간2까지 마저 채운다.
   return {
     first: fullCycles + 1,
     second: fullCycles + 1,
-    endSeconds: elapsedFullCycles + plan.first + plan.second,
+    endSeconds: elapsedFullCycles + cycle,
   };
 }
 
-// 총 시간에 닿는 순간 진행 중이던 구간을 끝까지 채우므로, 실제 세션 길이는
-// 총 시간 이상인 첫 구간 경계가 된다.
+// 총 시간에 닿는 순간의 사이클은 구간2까지 채우므로, 실제 세션 길이는
+// 그 사이클을 다 채운 경계가 된다.
 export function sessionEndSeconds(
   totalSeconds: number,
   plan: IntervalPlan

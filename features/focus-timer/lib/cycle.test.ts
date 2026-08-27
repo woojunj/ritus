@@ -8,10 +8,11 @@ import {
 } from "./cycle";
 
 describe("sessionEndSeconds", () => {
-  it("총 시간에 닿는 순간 진행 중이던 구간을 끝까지 채운다", () => {
+  it("총 시간에 닿는 순간의 사이클은 구간2까지 채우고 끝난다", () => {
     // 25분(1500초) 안에서 2분/1분 반복 → 8사이클(1440초) 뒤 2분 구간이 돌던 중
-    // 1500초에 닿으므로 그 구간을 채운 1560초에 끝난다.
-    expect(sessionEndSeconds(1500, { first: 120, second: 60 })).toBe(1560);
+    // 1500초에 닿는다. 구간1만 채우면 구간2가 한 번도 안 돌게 되므로, 그 사이클의
+    // 구간2까지 마저 채운 1620초에 끝난다.
+    expect(sessionEndSeconds(1500, { first: 120, second: 60 })).toBe(1620);
   });
 
   it("총 시간이 사이클로 딱 떨어지면 그대로 끝난다", () => {
@@ -22,8 +23,8 @@ describe("sessionEndSeconds", () => {
     expect(sessionEndSeconds(1570, { first: 120, second: 60 })).toBe(1620);
   });
 
-  it("구간이 총 시간보다 길면 첫 구간 하나만 돌고 끝난다", () => {
-    expect(sessionEndSeconds(60, { first: 300, second: 120 })).toBe(300);
+  it("구간이 총 시간보다 길어도 구간2까지 한 번은 돌고 끝난다", () => {
+    expect(sessionEndSeconds(60, { first: 300, second: 120 })).toBe(420);
   });
 });
 
@@ -63,11 +64,11 @@ describe("sliceAt", () => {
 });
 
 describe("countSlices", () => {
-  it("마지막 구간을 채우고 끝나므로 첫 구간이 한 번 더 돌 수 있다", () => {
+  it("마지막 사이클은 구간1과 구간2가 함께 한 번 더 돈다", () => {
     expect(countSlices(1500, { first: 120, second: 60 })).toEqual({
       first: 9,
-      second: 8,
-      endSeconds: 1560,
+      second: 9,
+      endSeconds: 1620,
     });
   });
 
@@ -79,11 +80,11 @@ describe("countSlices", () => {
     });
   });
 
-  it("구간이 총 시간보다 길면 첫 구간만 한 번 돈다", () => {
+  it("구간이 총 시간보다 길어도 두 구간 다 한 번씩 돈다", () => {
     expect(countSlices(60, { first: 300, second: 120 })).toEqual({
       first: 1,
-      second: 0,
-      endSeconds: 300,
+      second: 1,
+      endSeconds: 420,
     });
   });
 });
@@ -91,7 +92,7 @@ describe("countSlices", () => {
 describe("formatCycleSummary", () => {
   it("실제 세션 길이와 두 구간의 횟수를 한 줄로 알려준다", () => {
     expect(formatCycleSummary(1500, { first: 120, second: 60 })).toBe(
-      "총 26:00 · 02:00 9번 / 01:00 8번"
+      "총 27:00 · 02:00 9번 / 01:00 9번"
     );
   });
 
