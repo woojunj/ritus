@@ -15,7 +15,8 @@ import { ThemeToggle } from "./components/theme-toggle";
 type Phase = "setup" | "running" | "paused" | "ended";
 
 const DEFAULT_MINUTES = 25;
-const DEFAULT_INTERVAL_SECONDS = 60;
+const DEFAULT_FIRST_INTERVAL_SECONDS = 20;
+const DEFAULT_SECOND_INTERVAL_SECONDS = 10;
 const TICK_MS = 250;
 const BASE_TITLE = "집중 세션 타이머";
 
@@ -28,8 +29,8 @@ export function FocusTimer() {
   const [minutes, setMinutes] = useState(DEFAULT_MINUTES);
   const [intervalEnabled, setIntervalEnabled] = useState(false);
   const [intervalPlan, setIntervalPlan] = useState<IntervalPlan>({
-    first: DEFAULT_INTERVAL_SECONDS,
-    second: DEFAULT_INTERVAL_SECONDS,
+    first: DEFAULT_FIRST_INTERVAL_SECONDS,
+    second: DEFAULT_SECOND_INTERVAL_SECONDS,
   });
   const [muted, setMuted] = useState(false);
   const [phase, setPhase] = useState<Phase>("setup");
