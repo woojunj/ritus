@@ -246,10 +246,10 @@ describe("번갈아 반복 설정", () => {
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
     const fields = within(screen.getByTestId("interval-fields-narrow"));
 
-    expect(fields.getByLabelText("첫 구간(초)")).toHaveValue(20);
-    expect(fields.getByLabelText("두 번째 구간(초)")).toHaveValue(10);
+    expect(fields.getByLabelText("첫 구간(초)")).toHaveValue(60);
+    expect(fields.getByLabelText("두 번째 구간(초)")).toHaveValue(60);
     expect(fields.getByTestId("interval-summary")).toHaveTextContent(
-      "총 25:00 · 00:20 50번 / 00:10 50번"
+      "총 26:00 · 01:00 13번 / 01:00 13번"
     );
   });
 
