@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 
 import type { IntervalPlan } from "../lib/cycle";
 import { clampMinutes } from "../lib/time";
-import { IntervalSettings } from "./interval-settings";
+import { IntervalFields } from "./interval-fields";
+import { IntervalToggle } from "./interval-toggle";
 import { TimeDial } from "./time-dial";
 
 interface SetupScreenProps {
@@ -44,65 +45,84 @@ export function SetupScreen({
     setMinutesText(String(minutes));
   }
 
-  return (
-    <div className="flex w-full max-w-sm flex-col items-center gap-8">
-      <Input
-        aria-label="세션 제목"
-        placeholder="지금 무엇을 할까요?"
-        value={title}
-        onChange={(event) => onTitleChange(event.target.value)}
-        className="text-center text-base"
-      />
+  const fields = intervalEnabled ? (
+    <IntervalFields
+      plan={intervalPlan}
+      onPlanChange={onIntervalPlanChange}
+      totalSeconds={minutes * 60}
+    />
+  ) : null;
 
-      <div className="relative flex items-center justify-center">
-        <TimeDial minutes={minutes} onChange={onMinutesChange} />
-        <div className="pointer-events-none absolute flex flex-col items-center">
-          <span className="text-4xl font-semibold tabular-nums text-foreground">
-            {minutes}
-          </span>
-          <span className="text-xs text-muted-foreground">분</span>
+  return (
+    <div className="flex w-full flex-col items-center gap-8 lg:max-w-3xl lg:flex-row lg:items-start lg:justify-center lg:gap-12">
+      <div className="flex w-full max-w-sm flex-col items-center gap-8">
+        <Input
+          aria-label="세션 제목"
+          placeholder="지금 무엇을 할까요?"
+          value={title}
+          onChange={(event) => onTitleChange(event.target.value)}
+          className="text-center text-base"
+        />
+
+        <div className="relative flex items-center justify-center">
+          <TimeDial minutes={minutes} onChange={onMinutesChange} />
+          <div className="pointer-events-none absolute flex flex-col items-center">
+            <span className="text-4xl font-semibold tabular-nums text-foreground">
+              {minutes}
+            </span>
+            <span className="text-xs text-muted-foreground">분</span>
+          </div>
         </div>
+
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          직접 입력
+          <Input
+            type="number"
+            aria-label="시간(분)"
+            min={1}
+            max={60}
+            value={minutesText}
+            onChange={(event) => {
+              const raw = event.target.value;
+              setMinutesText(raw);
+              if (raw.trim() === "") return;
+              const parsed = Number(raw);
+              if (!Number.isNaN(parsed)) {
+                onMinutesChange(clampMinutes(parsed));
+              }
+            }}
+            onBlur={() => {
+              const parsed = Number(minutesText);
+              const next = Number.isNaN(parsed) ? minutes : clampMinutes(parsed);
+              onMinutesChange(next);
+              setMinutesText(String(next));
+            }}
+            className="w-16 text-center"
+          />
+        </label>
+
+        <IntervalToggle enabled={intervalEnabled} onToggleEnabled={onToggleIntervalEnabled} />
+
+        {fields && (
+          <div data-testid="interval-fields-narrow" className="w-full lg:hidden">
+            {fields}
+          </div>
+        )}
+
+        <Button type="button" size="lg" className="w-full" onClick={onStart}>
+          <Play aria-hidden="true" />
+          <span className="sr-only">시작</span>
+        </Button>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-muted-foreground">
-        직접 입력
-        <Input
-          type="number"
-          aria-label="시간(분)"
-          min={1}
-          max={60}
-          value={minutesText}
-          onChange={(event) => {
-            const raw = event.target.value;
-            setMinutesText(raw);
-            if (raw.trim() === "") return;
-            const parsed = Number(raw);
-            if (!Number.isNaN(parsed)) {
-              onMinutesChange(clampMinutes(parsed));
-            }
-          }}
-          onBlur={() => {
-            const parsed = Number(minutesText);
-            const next = Number.isNaN(parsed) ? minutes : clampMinutes(parsed);
-            onMinutesChange(next);
-            setMinutesText(String(next));
-          }}
-          className="w-16 text-center"
-        />
-      </label>
-
-      <IntervalSettings
-        enabled={intervalEnabled}
-        onToggleEnabled={onToggleIntervalEnabled}
-        plan={intervalPlan}
-        onPlanChange={onIntervalPlanChange}
-        totalSeconds={minutes * 60}
-      />
-
-      <Button type="button" size="lg" className="w-full" onClick={onStart}>
-        <Play aria-hidden="true" />
-        <span className="sr-only">시작</span>
-      </Button>
+      {fields && (
+        <div
+          data-testid="interval-fields-wide"
+          className="hidden w-full max-w-[16rem] flex-col items-center lg:flex lg:pt-8"
+        >
+          {fields}
+        </div>
+      )}
     </div>
   );
 }
