@@ -1,6 +1,6 @@
 const MIN_MINUTES = 1;
 const MAX_MINUTES = 60;
-export const MIN_INTERVAL_SECONDS = 3;
+export const MIN_INTERVAL_SECONDS = 1;
 export const MAX_INTERVAL_SECONDS = 3600;
 
 export function formatClock(totalSeconds: number): string {
@@ -15,7 +15,7 @@ export function clampMinutes(minutes: number): number {
   return Math.min(MAX_MINUTES, Math.max(MIN_MINUTES, rounded));
 }
 
-// 반복 구간 하나의 길이. 명상의 한 호흡(3초)부터 1시간까지 같은 방식으로 다룬다.
+// 반복 구간 하나의 길이. 1초부터 1시간까지 같은 방식으로 다룬다.
 export function clampIntervalSeconds(seconds: number): number {
   const rounded = Math.round(seconds);
   return Math.min(

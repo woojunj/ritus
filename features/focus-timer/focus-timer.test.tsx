@@ -246,10 +246,10 @@ describe("번갈아 반복 설정", () => {
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
     const fields = within(screen.getByTestId("interval-fields-narrow"));
 
-    expect(fields.getByLabelText("첫 구간(초)")).toHaveValue(60);
-    expect(fields.getByLabelText("두 번째 구간(초)")).toHaveValue(60);
+    expect(fields.getByLabelText("첫 구간(초)")).toHaveValue(20);
+    expect(fields.getByLabelText("두 번째 구간(초)")).toHaveValue(10);
     expect(fields.getByTestId("interval-summary")).toHaveTextContent(
-      "총 26:00 · 01:00 13번 / 01:00 13번"
+      "총 25:00 · 00:20 50번 / 00:10 50번"
     );
   });
 
@@ -280,15 +280,15 @@ describe("번갈아 반복 설정", () => {
     expect(fields.getByLabelText("두 번째 구간(초)")).toHaveValue(30);
   });
 
-  test("3초 미만이나 1시간 초과로는 정할 수 없다", () => {
+  test("1초 미만이나 1시간 초과로는 정할 수 없다", () => {
     render(<FocusTimer />);
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
     const fields = within(screen.getByTestId("interval-fields-narrow"));
 
     const firstInput = fields.getByLabelText("첫 구간(초)");
-    fireEvent.change(firstInput, { target: { value: "1" } });
+    fireEvent.change(firstInput, { target: { value: "0" } });
     fireEvent.blur(firstInput);
-    expect(firstInput).toHaveValue(3);
+    expect(firstInput).toHaveValue(1);
 
     fireEvent.change(firstInput, { target: { value: "9999" } });
     fireEvent.blur(firstInput);
