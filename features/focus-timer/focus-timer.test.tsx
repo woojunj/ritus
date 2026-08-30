@@ -244,10 +244,11 @@ describe("번갈아 반복 설정", () => {
     render(<FocusTimer />);
 
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
+    const fields = within(screen.getByTestId("interval-fields-narrow"));
 
-    expect(screen.getByLabelText("첫 구간(초)")).toHaveValue(60);
-    expect(screen.getByLabelText("두 번째 구간(초)")).toHaveValue(60);
-    expect(screen.getByTestId("interval-summary")).toHaveTextContent(
+    expect(fields.getByLabelText("첫 구간(초)")).toHaveValue(60);
+    expect(fields.getByLabelText("두 번째 구간(초)")).toHaveValue(60);
+    expect(fields.getByTestId("interval-summary")).toHaveTextContent(
       "총 26:00 · 01:00 13번 / 01:00 13번"
     );
   });
@@ -255,33 +256,36 @@ describe("번갈아 반복 설정", () => {
   test("첫 구간을 바꾸면 두 번째 구간도 같이 바뀐다", () => {
     render(<FocusTimer />);
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
+    const fields = within(screen.getByTestId("interval-fields-narrow"));
 
-    fireEvent.change(screen.getByLabelText("첫 구간(초)"), {
+    fireEvent.change(fields.getByLabelText("첫 구간(초)"), {
       target: { value: "120" },
     });
 
-    expect(screen.getByLabelText("두 번째 구간(초)")).toHaveValue(120);
+    expect(fields.getByLabelText("두 번째 구간(초)")).toHaveValue(120);
   });
 
   test("두 번째 구간을 직접 바꾸면 그 뒤로는 첫 구간과 따로 논다", () => {
     render(<FocusTimer />);
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
+    const fields = within(screen.getByTestId("interval-fields-narrow"));
 
-    fireEvent.change(screen.getByLabelText("두 번째 구간(초)"), {
+    fireEvent.change(fields.getByLabelText("두 번째 구간(초)"), {
       target: { value: "30" },
     });
-    fireEvent.change(screen.getByLabelText("첫 구간(초)"), {
+    fireEvent.change(fields.getByLabelText("첫 구간(초)"), {
       target: { value: "120" },
     });
 
-    expect(screen.getByLabelText("두 번째 구간(초)")).toHaveValue(30);
+    expect(fields.getByLabelText("두 번째 구간(초)")).toHaveValue(30);
   });
 
   test("3초 미만이나 1시간 초과로는 정할 수 없다", () => {
     render(<FocusTimer />);
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
+    const fields = within(screen.getByTestId("interval-fields-narrow"));
 
-    const firstInput = screen.getByLabelText("첫 구간(초)");
+    const firstInput = fields.getByLabelText("첫 구간(초)");
     fireEvent.change(firstInput, { target: { value: "1" } });
     fireEvent.blur(firstInput);
     expect(firstInput).toHaveValue(3);
@@ -299,10 +303,11 @@ describe("번갈아 반복 진행", () => {
     fireEvent.blur(minutesInput);
 
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
-    fireEvent.change(screen.getByLabelText("첫 구간(초)"), {
+    const fields = within(screen.getByTestId("interval-fields-narrow"));
+    fireEvent.change(fields.getByLabelText("첫 구간(초)"), {
       target: { value: "30" },
     });
-    fireEvent.change(screen.getByLabelText("두 번째 구간(초)"), {
+    fireEvent.change(fields.getByLabelText("두 번째 구간(초)"), {
       target: { value: "20" },
     });
     fireEvent.click(screen.getByRole("button", { name: "시작" }));
@@ -368,10 +373,11 @@ describe("번갈아 반복 일시정지", () => {
     fireEvent.change(minutesInput, { target: { value: "1" } });
     fireEvent.blur(minutesInput);
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
-    fireEvent.change(screen.getByLabelText("첫 구간(초)"), {
+    const fields = within(screen.getByTestId("interval-fields-narrow"));
+    fireEvent.change(fields.getByLabelText("첫 구간(초)"), {
       target: { value: "30" },
     });
-    fireEvent.change(screen.getByLabelText("두 번째 구간(초)"), {
+    fireEvent.change(fields.getByLabelText("두 번째 구간(초)"), {
       target: { value: "20" },
     });
     fireEvent.click(screen.getByRole("button", { name: "시작" }));

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeftRight, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { formatCycleSummary, type IntervalPlan, type SliceKind } from "../lib/cycle";
@@ -15,68 +14,15 @@ import {
 } from "../lib/time";
 import { IntervalDial } from "./interval-dial";
 
-interface IntervalSettingsProps {
-  enabled: boolean;
-  onToggleEnabled: () => void;
+interface IntervalFieldsProps {
   plan: IntervalPlan;
   onPlanChange: (plan: IntervalPlan) => void;
   totalSeconds: number;
 }
 
-export function IntervalSettings({
-  enabled,
-  onToggleEnabled,
-  plan,
-  onPlanChange,
-  totalSeconds,
-}: IntervalSettingsProps) {
-  return (
-    <div className="flex w-full flex-col items-center gap-4">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        aria-pressed={enabled}
-        onClick={onToggleEnabled}
-      >
-        <span aria-hidden="true" className="flex items-center gap-1">
-          <span
-            className={`flex size-4 items-center justify-center rounded-full text-[10px] font-semibold ${SLICE_BADGE_CLASS.first}`}
-          >
-            {SLICE_NUMBER.first}
-          </span>
-          <ArrowLeftRight className="size-3" />
-          <span
-            className={`flex size-4 items-center justify-center rounded-full text-[10px] font-semibold ${SLICE_BADGE_CLASS.second}`}
-          >
-            {SLICE_NUMBER.second}
-          </span>
-        </span>
-        <span className="sr-only">번갈아 반복</span>
-      </Button>
-
-      {enabled && (
-        <IntervalFields
-          plan={plan}
-          onPlanChange={onPlanChange}
-          totalSeconds={totalSeconds}
-        />
-      )}
-    </div>
-  );
-}
-
-// 스위치를 켤 때마다 새로 마운트되므로, 두 번째 구간이 첫 구간을 따라가는
+// 번갈아 반복을 켤 때마다 새로 마운트되므로, 두 번째 구간이 첫 구간을 따라가는
 // linked 상태도 그때마다 초기값(따라감)으로 되돌아온다.
-function IntervalFields({
-  plan,
-  onPlanChange,
-  totalSeconds,
-}: {
-  plan: IntervalPlan;
-  onPlanChange: (plan: IntervalPlan) => void;
-  totalSeconds: number;
-}) {
+export function IntervalFields({ plan, onPlanChange, totalSeconds }: IntervalFieldsProps) {
   const [linked, setLinked] = useState(true);
 
   const handleFirstChange = (seconds: number) => {
