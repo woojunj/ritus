@@ -1,5 +1,5 @@
-import { FocusTimer } from "@/features/focus-timer";
+import { TodoList } from "@/features/todo-list";
 
 export default function Home() {
-  return <FocusTimer />;
+  return <TodoList />;
 }

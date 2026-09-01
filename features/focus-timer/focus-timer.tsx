@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 import { playChime } from "./lib/chime";
 import { sessionEndSeconds, sliceAt, type IntervalPlan } from "./lib/cycle";
@@ -24,7 +26,12 @@ function secondsRemaining(target: number): number {
   return Math.max(0, Math.ceil((target - Date.now()) / 1000));
 }
 
-export function FocusTimer() {
+interface FocusTimerProps {
+  /** 제공 시 헤더 왼쪽에 뒤로가기 링크를 표시한다. */
+  backHref?: string;
+}
+
+export function FocusTimer({ backHref }: FocusTimerProps = {}) {
   const [title, setTitle] = useState("");
   const [minutes, setMinutes] = useState(DEFAULT_MINUTES);
   const [intervalEnabled, setIntervalEnabled] = useState(false);
@@ -151,9 +158,21 @@ export function FocusTimer() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex justify-end gap-2 p-4">
-        <ThemeToggle />
-        <MuteToggle muted={muted} onToggle={() => setMuted((m) => !m)} />
+      <div className="flex items-center gap-2 p-4">
+        {backHref && (
+          <Link
+            href={backHref}
+            className="mr-auto flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="할 일 목록으로 돌아가기"
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            목록
+          </Link>
+        )}
+        <div className="ml-auto flex items-center gap-2">
+          <ThemeToggle />
+          <MuteToggle muted={muted} onToggle={() => setMuted((m) => !m)} />
+        </div>
       </div>
       <div className="flex flex-1 items-center justify-center p-6 sm:p-16">
         {phase === "setup" && (
