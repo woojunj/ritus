@@ -23,6 +23,7 @@ function startSession({ title }: { title?: string } = {}) {
 beforeEach(() => {
   vi.useFakeTimers();
   playChimeMock.mockClear();
+  localStorage.clear();
 });
 
 afterEach(() => {
@@ -190,6 +191,24 @@ describe("세션 종료", () => {
     expect(screen.getByRole("timer")).toBeInTheDocument();
     expect(screen.getByText("결제 모듈 리팩터링")).toBeInTheDocument();
   });
+
+  test("세션이 끝나면 onFinish 콜백이 호출된다", () => {
+    const onFinish = vi.fn();
+    render(<FocusTimer onFinish={onFinish} />);
+
+    const minutesInput = screen.getByLabelText("시간(분)");
+    fireEvent.change(minutesInput, { target: { value: "1" } });
+    fireEvent.blur(minutesInput);
+    startSession({ title: "작업 완료 테스트" });
+
+    expect(onFinish).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(onFinish).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("전반", () => {
@@ -213,6 +232,32 @@ describe("전반", () => {
     });
 
     expect(playChimeMock).toHaveBeenCalledWith(
+      "end",
+      expect.objectContaining({ muted: true })
+    );
+  });
+
+  test("세션 진행 중에 소리를 끄면 이후 종료 소리가 울리지 않는다", () => {
+    render(<FocusTimer />);
+
+    const minutesInput = screen.getByLabelText("시간(분)");
+    fireEvent.change(minutesInput, { target: { value: "1" } });
+    fireEvent.blur(minutesInput);
+    startSession();
+
+    expect(playChimeMock).toHaveBeenLastCalledWith(
+      "start",
+      expect.objectContaining({ muted: false })
+    );
+
+    // 진행 중에 소리를 끔
+    fireEvent.click(screen.getByRole("button", { name: "소리 끄기" }));
+
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(playChimeMock).toHaveBeenLastCalledWith(
       "end",
       expect.objectContaining({ muted: true })
     );
@@ -246,10 +291,10 @@ describe("번갈아 반복 설정", () => {
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
     const fields = within(screen.getByTestId("interval-fields-narrow"));
 
-    expect(fields.getByLabelText("첫 구간(초)")).toHaveValue(60);
-    expect(fields.getByLabelText("두 번째 구간(초)")).toHaveValue(60);
+    expect(fields.getByLabelText("첫 구간(초)")).toHaveValue(20);
+    expect(fields.getByLabelText("두 번째 구간(초)")).toHaveValue(10);
     expect(fields.getByTestId("interval-summary")).toHaveTextContent(
-      "총 26:00 · 01:00 13번 / 01:00 13번"
+      "총 25:00 · 00:20 50번 / 00:10 50번"
     );
   });
 
