@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Plus, Timer, Trash2 } from "lucide-react";
+import { useState, useRef, useSyncExternalStore } from "react";
+import { Plus, Timer, Trash2, ChevronLeft, Check, X } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -10,26 +10,23 @@ import { Input } from "@/components/ui/input";
 // 원칙상 피해야 한다. 추후 components/theme-toggle.tsx로 이전 예정.
 import { ThemeToggle } from "@/features/focus-timer/components/theme-toggle";
 
-import { loadItems, saveItems, type TodoItem } from "../lib/storage";
+import {
+  saveItems,
+  subscribeTodos,
+  getTodosSnapshot,
+  getTodosServerSnapshot,
+  type TodoItem,
+} from "../lib/storage";
 
 export function TodoList() {
-  const [items, setItems] = useState<TodoItem[]>([]);
+  const items = useSyncExternalStore(
+    subscribeTodos,
+    getTodosSnapshot,
+    getTodosServerSnapshot
+  );
   const [draft, setDraft] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // 클라이언트 마운트 후에만 localStorage를 읽는다.
-  useEffect(() => {
-    setItems(loadItems());
-  }, []);
-
-  /** items를 업데이트하고 localStorage에 동기적으로 저장한다. */
-  function updateItems(next: (prev: TodoItem[]) => TodoItem[]) {
-    setItems((prev) => {
-      const resolved = next(prev);
-      saveItems(resolved);
-      return resolved;
-    });
-  }
 
   function handleAdd() {
     const trimmed = draft.trim();
@@ -40,23 +37,41 @@ export function TodoList() {
       completionCount: 0,
       createdAt: Date.now(),
     };
-    updateItems((prev) => [item, ...prev]);
+    saveItems([item, ...items]);
     setDraft("");
     inputRef.current?.focus();
   }
 
   function handleDelete(id: string) {
-    updateItems((prev) => prev.filter((item) => item.id !== id));
+    saveItems(items.filter((item) => item.id !== id));
+    if (confirmDeleteId === id) {
+      setConfirmDeleteId(null);
+    }
   }
+
 
   return (
     <div className="flex min-h-full flex-col">
       {/* 헤더 */}
       <header className="flex items-center justify-between border-b px-6 py-4">
-        <h1 className="font-heading text-lg font-semibold tracking-tight">
-          ritus
-        </h1>
+        <Link
+          href="/"
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="타이머로 돌아가기"
+        >
+          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          <span className="font-heading text-lg font-semibold tracking-tight text-foreground">
+            ritus
+          </span>
+        </Link>
         <div className="flex items-center gap-2">
+          <Link
+            href="/"
+            className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            aria-label="타이머 화면으로 이동"
+          >
+            <Timer className="h-4 w-4" aria-hidden="true" />
+          </Link>
           <ThemeToggle />
         </div>
       </header>
@@ -105,48 +120,87 @@ export function TodoList() {
           {/* 할 일 목록 */}
           {items.length > 0 && (
             <ul className="flex flex-col gap-2" role="list">
-              {items.map((item) => (
-                <li
-                  key={item.id}
-                  className="group flex items-center gap-3 rounded-xl border bg-card px-4 py-3 shadow-sm transition-shadow hover:shadow-md"
-                >
-                  <span className="flex-1 text-sm font-medium leading-snug">
-                    {item.title}
-                  </span>
+              {items.map((item) => {
+                const isConfirmingDelete = confirmDeleteId === item.id;
+                const timerHref = `/?todoId=${encodeURIComponent(item.id)}&title=${encodeURIComponent(item.title)}`;
 
-                  {/* 완주 횟수 (1b 타이머 연결 후 실제로 쌓임) */}
-                  {item.completionCount > 0 && (
-                    <span
-                      className="tabular-nums text-xs text-muted-foreground"
-                      aria-label={`완주 ${item.completionCount}회`}
-                    >
-                      ×{item.completionCount}
-                    </span>
-                  )}
-
-                  {/* 액션 버튼들 (호버 시 노출) */}
-                  <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                    {/* 타이머 시작 (1b에서 todoId와 함께 연결 예정) */}
+                return (
+                  <li
+                    key={item.id}
+                    className="group flex items-center gap-3 rounded-xl border bg-card px-4 py-3 shadow-sm transition-shadow hover:shadow-md"
+                  >
+                    {/* 제목 영역: 모바일 터치 시 바로 타이머로 이동할 수 있도록 링크로 감쌈 */}
                     <Link
-                      href={`/timer?todoId=${encodeURIComponent(item.id)}&title=${encodeURIComponent(item.title)}`}
-                      className="inline-flex size-8 items-center justify-center rounded-2xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      aria-label={`"${item.title}" 타이머 시작`}
+                      href={timerHref}
+                      className="flex-1 min-w-0 py-0.5 text-sm font-medium leading-snug hover:underline focus-visible:outline-hidden"
                     >
-                      <Timer className="h-4 w-4" aria-hidden="true" />
+                      <span className="block truncate">{item.title}</span>
                     </Link>
 
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(item.id)}
-                      aria-label={`"${item.title}" 삭제`}
-                    >
-                      <Trash2 className="h-4 w-4" aria-hidden="true" />
-                    </Button>
-                  </div>
-                </li>
-              ))}
+                    {/* 완주 횟수 */}
+                    {item.completionCount > 0 && (
+                      <span
+                        className="tabular-nums text-xs text-muted-foreground shrink-0"
+                        aria-label={`완주 ${item.completionCount}회`}
+                      >
+                        ×{item.completionCount}
+                      </span>
+                    )}
+
+                    {/* 액션 컨트롤: 삭제 확인 중일 때와 평상시 */}
+                    {isConfirmingDelete ? (
+                      <div className="flex items-center gap-1 shrink-0 animate-in fade-in duration-200">
+                        <span className="text-xs text-destructive font-medium mr-1 hidden xs:inline">
+                          삭제할까요?
+                        </span>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => handleDelete(item.id)}
+                          aria-label={`"${item.title}" 삭제 확인`}
+                        >
+                          <Check className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
+                          삭제
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => setConfirmDeleteId(null)}
+                          aria-label="삭제 취소"
+                        >
+                          <X className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
+                          취소
+                        </Button>
+                      </div>
+                    ) : (
+                      /* 평상시 액션 버튼: 모바일(터치)에서는 항상 보이고 데스크톱에서는 호버 시 강조 */
+                      <div className="flex items-center gap-1 shrink-0 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
+                        {/* 타이머 시작 버튼 */}
+                        <Link
+                          href={timerHref}
+                          className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                          aria-label={`"${item.title}" 타이머 시작`}
+                        >
+                          <Timer className="h-4 w-4" aria-hidden="true" />
+                        </Link>
+
+                        {/* 삭제 버튼 (클릭 시 확인 단계로 진입하여 실수 삭제 방지) */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setConfirmDeleteId(item.id)}
+                          aria-label={`"${item.title}" 삭제`}
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
