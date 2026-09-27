@@ -6,9 +6,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// ThemeToggle은 focus-timer에 위치하지만, 동일 레벨 피처 간 직접 임포트는
-// 원칙상 피해야 한다. 추후 components/theme-toggle.tsx로 이전 예정.
-import { ThemeToggle } from "@/features/focus-timer/components/theme-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import {
   saveItems,
