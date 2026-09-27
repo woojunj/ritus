@@ -12,7 +12,7 @@ import { EndScreen } from "./components/end-screen";
 import { MuteToggle } from "./components/mute-toggle";
 import { RunningScreen } from "./components/running-screen";
 import { SetupScreen } from "./components/setup-screen";
-import { ThemeToggle } from "./components/theme-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type Phase = "setup" | "running" | "paused" | "ended";
 
