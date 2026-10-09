@@ -21,6 +21,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "집중 세션 타이머",
   description: "지금 하기로 한 일을 적고, 정한 시간만큼 도는 집중 세션 타이머.",
+  appleWebApp: {
+    capable: true,
+    title: "ritus",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
