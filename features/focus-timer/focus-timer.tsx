@@ -1,13 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
-import { ListTodo, ChevronLeft } from "lucide-react";
+import { ListTodo, ChevronLeft, NotebookPen } from "lucide-react";
 
 import { playChime } from "./lib/chime";
 import { sessionEndSeconds, sliceAt, type IntervalPlan } from "./lib/cycle";
 import { pickEncouragement } from "./lib/encouragements";
 import { clampMinutes, formatTabTitle } from "./lib/time";
+import { CompactBar } from "./components/compact-bar";
 import { EndScreen } from "./components/end-screen";
 import { MuteToggle } from "./components/mute-toggle";
 import { RunningScreen } from "./components/running-screen";
@@ -80,6 +88,11 @@ interface FocusTimerProps {
   initialTitle?: string;
   /** 세션 완주 시 호출되는 콜백 */
   onFinish?: () => void;
+  /**
+   * 제공 시 헤더에 메모장 아이콘을 표시하고, 열면 타이머를 한 줄 바로 줄인 채
+   * 이 내용을 아래에 채운다. 같은 화면 안의 전환이라 세션은 끊기지 않는다.
+   */
+  memoPad?: ReactNode;
 }
 
 export function FocusTimer({
@@ -87,7 +100,9 @@ export function FocusTimer({
   todoHref,
   initialTitle,
   onFinish,
+  memoPad,
 }: FocusTimerProps = {}) {
+  const [memoOpen, setMemoOpen] = useState(false);
   const [title, setTitle] = useState(initialTitle ?? "");
   const [prevInitialTitle, setPrevInitialTitle] = useState(initialTitle);
   if (initialTitle !== prevInitialTitle) {
@@ -237,6 +252,44 @@ export function FocusTimer({
     }
   }, [phase, remainingSeconds, title]);
 
+  const headerIcons = (
+    <>
+      {todoHref && (
+        <Link
+          href={todoHref}
+          className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          aria-label="할 일 목록"
+        >
+          <ListTodo className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      )}
+      <ThemeToggle />
+      <MuteToggle muted={muted} onToggle={() => setMutedStorage(!muted)} />
+    </>
+  );
+
+  if (memoPad && memoOpen) {
+    // 세션 밖에서는 지금 설정으로 시작했을 때의 길이를 보여 준다.
+    const setupSeconds = intervalEnabled
+      ? sessionEndSeconds(minutes * 60, intervalPlan)
+      : minutes * 60;
+    return (
+      <div className="flex h-dvh flex-col">
+        <CompactBar
+          phase={phase}
+          remainingSeconds={phase === "setup" ? setupSeconds : remainingSeconds}
+          totalSeconds={sessionTotalSeconds}
+          onStart={handleStart}
+          onTogglePause={handleTogglePause}
+          onQuit={handleQuit}
+          onClose={() => setMemoOpen(false)}
+          icons={headerIcons}
+        />
+        {memoPad}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex items-center justify-between p-4">
@@ -255,20 +308,17 @@ export function FocusTimer({
           </span>
         )}
         <div className="flex items-center gap-2">
-          {todoHref && (
-            <Link
-              href={todoHref}
+          {memoPad && (
+            <button
+              type="button"
+              onClick={() => setMemoOpen(true)}
               className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              aria-label="할 일 목록"
+              aria-label="메모장"
             >
-              <ListTodo className="h-4 w-4" aria-hidden="true" />
-            </Link>
+              <NotebookPen className="h-4 w-4" aria-hidden="true" />
+            </button>
           )}
-          <ThemeToggle />
-          <MuteToggle
-            muted={muted}
-            onToggle={() => setMutedStorage(!muted)}
-          />
+          {headerIcons}
         </div>
       </div>
       <div className="flex flex-1 items-center justify-center p-6 sm:p-16">

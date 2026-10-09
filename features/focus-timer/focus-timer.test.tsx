@@ -449,3 +449,69 @@ describe("번갈아 반복 일시정지", () => {
     );
   });
 });
+
+describe("메모장 모드", () => {
+  const memo = <textarea aria-label="메모 본문" />;
+
+  test("메모장을 넘기지 않으면 메모장 아이콘이 없다", () => {
+    render(<FocusTimer />);
+    expect(screen.queryByRole("button", { name: "메모장" })).not.toBeInTheDocument();
+  });
+
+  test("세션 밖에서 열면 설정된 시간과 시작 아이콘이 보이고, 연 채로 시작할 수 있다", () => {
+    render(<FocusTimer memoPad={memo} />);
+    fireEvent.click(screen.getByRole("button", { name: "메모장" }));
+
+    expect(screen.getByLabelText("메모 본문")).toBeInTheDocument();
+    expect(screen.getByRole("timer")).toHaveTextContent("25:00");
+
+    fireEvent.click(screen.getByRole("button", { name: "시작" }));
+    act(() => {
+      vi.advanceTimersByTime(2_000);
+    });
+    expect(screen.getByRole("timer")).toHaveTextContent("24:58");
+    expect(screen.getByLabelText("메모 본문")).toBeInTheDocument();
+    expect(playChimeMock).toHaveBeenCalledWith("start", expect.anything());
+  });
+
+  test("세션 중에 열고 닫아도 세션이 끊기지 않고, 상단 바에서 일시정지·그만두기를 할 수 있다", () => {
+    render(<FocusTimer memoPad={memo} />);
+    startSession();
+    act(() => {
+      vi.advanceTimersByTime(5_000);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "메모장" }));
+    act(() => {
+      vi.advanceTimersByTime(5_000);
+    });
+    expect(screen.getByRole("timer")).toHaveTextContent("24:50");
+
+    fireEvent.click(screen.getByRole("button", { name: "일시정지" }));
+    fireEvent.click(screen.getByRole("button", { name: "이어서" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "메모장 닫기" }));
+    expect(screen.queryByLabelText("메모 본문")).not.toBeInTheDocument();
+    expect(screen.getByRole("timer")).toHaveTextContent("24:50");
+
+    fireEvent.click(screen.getByRole("button", { name: "메모장" }));
+    fireEvent.click(screen.getByRole("button", { name: "그만두기" }));
+    expect(screen.getByRole("timer")).toHaveTextContent("25:00");
+    expect(screen.getByRole("button", { name: "시작" })).toBeInTheDocument();
+  });
+
+  test("메모장을 연 채로 세션이 끝나면 종료 소리가 나고 한 판 더 아이콘이 보인다", () => {
+    render(<FocusTimer memoPad={memo} />);
+    fireEvent.change(screen.getByLabelText("시간(분)"), { target: { value: "1" } });
+    fireEvent.blur(screen.getByLabelText("시간(분)"));
+    fireEvent.click(screen.getByRole("button", { name: "메모장" }));
+    fireEvent.click(screen.getByRole("button", { name: "시작" }));
+
+    act(() => {
+      vi.advanceTimersByTime(61_000);
+    });
+    expect(playChimeMock).toHaveBeenCalledWith("end", expect.anything());
+    expect(screen.getByLabelText("메모 본문")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "다시 시작" })).toBeInTheDocument();
+  });
+});
