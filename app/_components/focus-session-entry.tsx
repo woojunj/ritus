@@ -4,6 +4,7 @@ import { Suspense, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { FocusTimer } from "@/features/focus-timer";
+import { MemoPad } from "@/features/memo-pad";
 import { incrementCompletionCount } from "@/features/todo-list";
 
 interface FocusSessionEntryProps {
@@ -28,6 +29,7 @@ function FocusSessionEntryContent({ backHref }: FocusSessionEntryProps) {
       todoHref="/todos"
       initialTitle={title}
       onFinish={handleFinish}
+      memoPad={<MemoPad />}
     />
   );
 }
