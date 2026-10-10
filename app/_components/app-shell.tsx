@@ -13,7 +13,7 @@ function handleFinish(todoId: string | undefined) {
   }
 }
 
-// 세 화면의 공통 틀. 세션 상태와 헤더를 레이아웃에 두어 화면을 옮겨도
+// 네 화면의 공통 틀. 세션 상태와 헤더를 레이아웃에 두어 화면을 옮겨도
 // 세션이 이어지게 하고, 세션 완주를 할 일의 완주 횟수로 잇는다.
 export function AppShell({ children }: { children: ReactNode }) {
   return (

@@ -2,6 +2,7 @@ import { render, screen, fireEvent, act, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { AppShell } from "@/app/_components/app-shell";
+import ConsciencePage from "@/app/conscience/page";
 import MemoPage from "@/app/memo/page";
 import Home from "@/app/page";
 import TodosPage from "@/app/todos/page";
@@ -55,6 +56,8 @@ function App() {
         <MemoPage />
       ) : pathname === "/todos" ? (
         <TodosPage />
+      ) : pathname === "/conscience" ? (
+        <ConsciencePage />
       ) : (
         <Home />
       )}
@@ -69,7 +72,7 @@ function renderApp(start = "/") {
   return view;
 }
 
-function goTo(label: "타이머" | "메모장" | "할 일 목록") {
+function goTo(label: "타이머" | "메모장" | "할 일 목록" | "양심노트") {
   const nav = screen.getByRole("navigation", { name: "화면 이동" });
   fireEvent.click(within(nav).getByRole("link", { name: label }));
 }
@@ -100,13 +103,14 @@ afterEach(() => {
 });
 
 describe("내비게이션", () => {
-  test("세 화면 모두 같은 순서의 세 아이콘이 있고 현재 화면이 표시된다", () => {
+  test("네 화면 모두 같은 순서의 네 아이콘이 있고 현재 화면이 표시된다", () => {
     renderApp();
 
     for (const [label, marker] of [
       ["타이머", () => screen.getByLabelText("세션 제목")],
       ["메모장", () => screen.getByLabelText("메모 본문")],
       ["할 일 목록", () => screen.getByLabelText("새 할 일")],
+      ["양심노트", () => screen.getByRole("button", { name: "새 양심노트 쓰기" })],
     ] as const) {
       goTo(label);
       expect(marker()).toBeInTheDocument();
@@ -117,6 +121,7 @@ describe("내비게이션", () => {
         "타이머",
         "메모장",
         "할 일 목록",
+        "양심노트",
       ]);
       expect(
         links.filter((link) => link.getAttribute("aria-current") === "page")
