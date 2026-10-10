@@ -4,7 +4,7 @@ import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
 
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Button } from "@/components/ui/button";
 
 const THEME_OPTIONS = [
   { value: "light", label: "라이트 모드", icon: Sun },
@@ -26,29 +26,29 @@ function useMounted() {
   );
 }
 
+// 버튼 하나에 지금 테마의 아이콘만 보이고, 누를 때마다 라이트 → 다크 →
+// 시스템 순서로 바뀐다. 헤더에서 자리를 덜 차지하도록 선택지를 펼치지 않는다.
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const mounted = useMounted();
 
   const currentTheme = mounted ? theme ?? "system" : "system";
+  const currentIndex = Math.max(
+    0,
+    THEME_OPTIONS.findIndex((option) => option.value === currentTheme)
+  );
+  const { label, icon: Icon } = THEME_OPTIONS[currentIndex];
+  const next = THEME_OPTIONS[(currentIndex + 1) % THEME_OPTIONS.length];
 
   return (
-    <ToggleGroup
-      variant="outline"
-      spacing={0}
-      value={[currentTheme]}
-      onValueChange={(next) => {
-        const nextTheme = next[0];
-        if (nextTheme) setTheme(nextTheme);
-      }}
-      aria-label="테마 선택"
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      onClick={() => setTheme(next.value)}
     >
-      {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
-        <ToggleGroupItem key={value} value={value} size="sm" aria-label={label}>
-          <Icon aria-hidden="true" />
-          <span className="sr-only">{label}</span>
-        </ToggleGroupItem>
-      ))}
-    </ToggleGroup>
+      <Icon aria-hidden="true" />
+      <span className="sr-only">테마 선택: {label}</span>
+    </Button>
   );
 }

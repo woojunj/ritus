@@ -122,7 +122,7 @@ describe("내비게이션", () => {
         links.filter((link) => link.getAttribute("aria-current") === "page")
       ).toEqual([within(nav).getByRole("link", { name: label })]);
       expect(screen.getByRole("button", { name: "소리 끄기" })).toBeInTheDocument();
-      expect(screen.getByRole("group", { name: "테마 선택" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /테마 선택/ })).toBeInTheDocument();
     }
   });
 
