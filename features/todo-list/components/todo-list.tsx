@@ -1,12 +1,20 @@
 "use client";
 
 import { useState, useRef, useSyncExternalStore } from "react";
-import { Plus, Timer, Trash2, ChevronLeft, Check, X } from "lucide-react";
+import { Plus, Timer, Trash2, Check, X } from "lucide-react";
 import Link from "next/link";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 import {
   saveItems,
@@ -16,7 +24,17 @@ import {
   type TodoItem,
 } from "../lib/storage";
 
-export function TodoList() {
+interface TodoListProps {
+  /** 할 일 카드를 눌러 그 할 일로 타이머를 시작하려 할 때 호출된다. */
+  onStartTimer?: (item: TodoItem) => void;
+  /** true를 돌려주면 onStartTimer를 부르기 전에 지금 세션을 그만둘지 확인한다. */
+  shouldConfirmStart?: (item: TodoItem) => boolean;
+}
+
+export function TodoList({
+  onStartTimer,
+  shouldConfirmStart,
+}: TodoListProps = {}) {
   const items = useSyncExternalStore(
     subscribeTodos,
     getTodosSnapshot,
@@ -25,6 +43,7 @@ export function TodoList() {
   const [draft, setDraft] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [pendingStart, setPendingStart] = useState<TodoItem | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleAdd() {
@@ -54,30 +73,6 @@ export function TodoList() {
 
   return (
     <div className="flex min-h-full flex-col">
-      {/* 헤더 */}
-      <header className="flex items-center justify-between border-b px-6 py-4">
-        <Link
-          href="/"
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="타이머로 돌아가기"
-        >
-          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          <span className="font-heading text-lg font-semibold tracking-tight text-foreground">
-            ritus
-          </span>
-        </Link>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/"
-            className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            aria-label="타이머 화면으로 이동"
-          >
-            <Timer className="h-4 w-4" aria-hidden="true" />
-          </Link>
-          <ThemeToggle />
-        </div>
-      </header>
-
       {/* 본문 */}
       <main className="flex flex-1 flex-col items-center px-4 py-8">
         <div className="flex w-full max-w-md flex-col gap-6">
@@ -152,7 +147,6 @@ export function TodoList() {
               <ul className="flex flex-col gap-2" role="list">
                 {items.map((item) => {
                   const isConfirmingDelete = confirmDeleteId === item.id;
-                  const timerHref = `/?todoId=${encodeURIComponent(item.id)}&title=${encodeURIComponent(item.title)}`;
 
                   return (
                     <li
@@ -161,7 +155,16 @@ export function TodoList() {
                     >
                       {/* 카드 메인 영역: 타이머 시작을 위한 넓은 탭 영역 (터치 친화적) */}
                       <Link
-                        href={timerHref}
+                        href="/"
+                        onClick={(e) => {
+                          if (!onStartTimer) return;
+                          e.preventDefault();
+                          if (shouldConfirmStart?.(item)) {
+                            setPendingStart(item);
+                          } else {
+                            onStartTimer(item);
+                          }
+                        }}
                         className="group flex flex-1 items-center gap-3 px-4 py-3.5 hover:bg-accent/40 active:bg-accent/60 transition-colors min-w-0"
                         aria-label={`"${item.title}" 타이머 시작`}
                       >
@@ -229,6 +232,32 @@ export function TodoList() {
           )}
         </div>
       </main>
+
+      <AlertDialog
+        open={pendingStart !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingStart(null);
+        }}
+      >
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              지금 세션을 그만두고 새로 시작할까요?
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingStart) onStartTimer?.(pendingStart);
+                setPendingStart(null);
+              }}
+            >
+              확인
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

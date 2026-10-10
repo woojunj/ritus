@@ -23,7 +23,7 @@ describe("TodoList", () => {
     expect(timerCard).toBeInTheDocument();
     expect(timerCard).toHaveAttribute(
       "href",
-      expect.stringContaining("/?todoId=")
+      "/"
     );
 
     // 평상시에는 실수 삭제 방지를 위해 삭제 버튼이 아예 노출되지 않음
