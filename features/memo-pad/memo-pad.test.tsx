@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { MemoPad } from "./memo-pad";
@@ -28,6 +28,21 @@ describe("일반 텍스트 메모장", () => {
     expect(status).toHaveTextContent("2줄");
     expect(status).toHaveTextContent("5자");
     expect(status).toHaveTextContent("공백 제외 3");
+  });
+
+  test("자동 저장 표시가 보이고, 쓰면 잠깐 저장 중이 되었다가 돌아온다", () => {
+    vi.useFakeTimers();
+    render(<MemoPad />);
+    expect(screen.getByRole("status")).toHaveTextContent("자동 저장됨");
+
+    typeInto(screen.getByLabelText("메모 본문"), "쓰는 중");
+    expect(screen.getByRole("status")).toHaveTextContent("저장 중…");
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(screen.getByRole("status")).toHaveTextContent("자동 저장됨");
+    vi.useRealTimers();
   });
 
   test("쓴 글은 저장 버튼 없이도 다시 열면 남아 있다", () => {

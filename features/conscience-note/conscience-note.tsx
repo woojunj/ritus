@@ -1,17 +1,20 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { Hexagon, Plus } from "lucide-react";
+import { Hexagon, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
+import { DeleteNoteDialog } from "./components/delete-note-dialog";
 import { NoteSheet } from "./components/note-sheet";
+import { RadarChart } from "./components/radar-chart";
 import { COPYRIGHT_NOTICE } from "./lib/form";
 import {
   createNote,
   formatNoteDate,
   getNotesServerSnapshot,
   getNotesSnapshot,
+  noteLevels,
   saveNotes,
   sortNotes,
   subscribeNotes,
@@ -27,6 +30,7 @@ export function ConscienceNote() {
   );
   const [openId, setOpenId] = useState<string | null>(null);
   const [justCreated, setJustCreated] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const openNote = notes.find((note) => note.id === openId);
 
   function handleCreate() {
@@ -76,10 +80,15 @@ export function ConscienceNote() {
               <ul className="flex flex-col gap-2" role="list">
                 {sortNotes(notes).map((note) => {
                   const firstLine = note.matter.trim().split("\n")[0];
+                  const date = formatNoteDate(note.date);
+                  const levels = noteLevels(note);
+                  const hasLevel = Object.values(levels).some(
+                    (level) => level !== null
+                  );
                   return (
                     <li
                       key={note.id}
-                      className="overflow-hidden rounded-xl border bg-card shadow-xs transition-shadow hover:shadow-md"
+                      className="flex items-stretch overflow-hidden rounded-xl border bg-card shadow-xs transition-shadow hover:shadow-md"
                     >
                       <button
                         type="button"
@@ -87,17 +96,35 @@ export function ConscienceNote() {
                           setOpenId(note.id);
                           setJustCreated(false);
                         }}
-                        className="flex w-full min-w-0 flex-col gap-0.5 px-4 py-3 text-left transition-colors hover:bg-accent/40 active:bg-accent/60"
+                        className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/40 active:bg-accent/60"
                       >
-                        <span className="text-xs tabular-nums text-muted-foreground">
-                          {formatNoteDate(note.date)}
-                        </span>
-                        {firstLine && (
-                          <span className="truncate text-sm font-medium leading-snug">
-                            {firstLine}
+                        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <span className="text-xs tabular-nums text-muted-foreground">
+                            {date}
                           </span>
+                          {firstLine && (
+                            <span className="truncate text-sm font-medium leading-snug">
+                              {firstLine}
+                            </span>
+                          )}
+                        </span>
+                        {/* 단계를 하나라도 고른 한 장은 그 모양을 작게 보여 준다. */}
+                        {hasLevel && (
+                          <RadarChart levels={levels} compact className="shrink-0" />
                         )}
                       </button>
+                      <div className="flex shrink-0 items-center pr-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setDeletingId(note.id)}
+                          aria-label={`"${firstLine || date}" 삭제`}
+                        >
+                          <Trash2 aria-hidden="true" />
+                        </Button>
+                      </div>
                     </li>
                   );
                 })}
@@ -106,6 +133,15 @@ export function ConscienceNote() {
           </div>
         )}
       </div>
+      <DeleteNoteDialog
+        open={deletingId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeletingId(null);
+        }}
+        onConfirm={() => {
+          if (deletingId) handleDelete(deletingId);
+        }}
+      />
       <p className="border-t px-4 py-2 text-center text-xs text-muted-foreground">
         {COPYRIGHT_NOTICE}
       </p>

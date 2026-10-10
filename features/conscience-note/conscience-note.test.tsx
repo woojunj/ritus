@@ -14,7 +14,7 @@ function startNewNote() {
 }
 
 function backToList() {
-  fireEvent.click(screen.getByRole("button", { name: "목록으로" }));
+  fireEvent.click(screen.getByRole("button", { name: "완료" }));
 }
 
 function chartDots() {
@@ -58,7 +58,65 @@ describe("양심노트 목록", () => {
   });
 });
 
+describe("양심노트 목록의 도표와 삭제", () => {
+  test("단계를 고른 한 장에만 작은 도표가 보인다", () => {
+    render(<ConscienceNote />);
+    startNewNote();
+    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "단계 없음" } });
+    backToList();
+    startNewNote();
+    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "단계 있음" } });
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "정의 단계" })).getByRole("button", {
+        name: "자명",
+      })
+    );
+    backToList();
+
+    const [withLevel, withoutLevel] = screen.getAllByRole("listitem");
+    expect(withLevel).toHaveTextContent("단계 있음");
+    expect(within(withLevel).getByTestId("note-chart")).toBeInTheDocument();
+    expect(within(withoutLevel).queryByTestId("note-chart")).toBeNull();
+  });
+
+  test("목록에서도 확인을 거쳐 그 한 장만 지운다", () => {
+    render(<ConscienceNote />);
+    startNewNote();
+    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "남길 것" } });
+    backToList();
+    startNewNote();
+    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "지울 것" } });
+    backToList();
+
+    fireEvent.click(screen.getByRole("button", { name: '"지울 것" 삭제' }));
+    const dialog = screen.getByRole("alertdialog");
+    expect(dialog).toHaveTextContent("이 양심노트를 지울까요?");
+    fireEvent.click(within(dialog).getByRole("button", { name: "취소" }));
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+
+    fireEvent.click(screen.getByRole("button", { name: '"지울 것" 삭제' }));
+    fireEvent.click(
+      within(screen.getByRole("alertdialog")).getByRole("button", { name: "확인" })
+    );
+    const items = screen.getAllByRole("listitem");
+    expect(items).toHaveLength(1);
+    expect(items[0]).toHaveTextContent("남길 것");
+  });
+});
+
 describe("양심노트 한 장", () => {
+  test("자동 저장 표시가 보이고, 쓰면 잠깐 저장 중이 되며, 완료를 누르면 목록으로 돌아간다", () => {
+    render(<ConscienceNote />);
+    startNewNote();
+    expect(screen.getByRole("status")).toHaveTextContent("자동 저장됨");
+
+    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "쓰는 중" } });
+    expect(screen.getByRole("status")).toHaveTextContent("저장 중…");
+
+    backToList();
+    expect(screen.getByRole("listitem")).toHaveTextContent("쓰는 중");
+  });
+
   test("사안, 여섯 덕목, 최종 결론이 양식 순서대로 보이고 안내 질문은 원문 그대로다", () => {
     render(<ConscienceNote />);
     startNewNote();

@@ -36,13 +36,15 @@ test("양심노트를 쓰면 도표가 그려지고, 새로고침해도 남아 �
   await expect(chart.locator("polygon")).toHaveAttribute("points", "90,0 -30,0");
 
   await page.reload();
-  await page.getByRole("button", { name: /회의에서 말을 끊었다/ }).click();
+  await page.getByRole("button", { name: /회의에서 말을 끊었다$/ }).click();
   await expect(page.getByLabel("최종 결론")).toHaveValue("먼저 사과한다");
   await expect(
     page.getByRole("group", { name: "정의 단계" }).getByRole("button", { name: "자명" })
   ).toHaveAttribute("aria-pressed", "true");
 
-  await page.getByRole("button", { name: "양심노트 삭제" }).click();
+  await page.getByRole("button", { name: "완료" }).click();
+  await expect(page.getByTestId("note-chart")).toBeVisible();
+  await page.getByRole("button", { name: '"회의에서 말을 끊었다" 삭제' }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: "확인" }).click();
   await expect(page.getByRole("listitem")).toHaveCount(0);
   await page.reload();

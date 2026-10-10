@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Download, Eye, PencilLine } from "lucide-react";
 
+import { SaveStatus, useSaveStatus } from "@/components/save-status";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -35,9 +36,12 @@ export function MemoPad() {
     textareaRef.current?.focus();
   }, []);
 
+  const { saving, markSaved } = useSaveStatus();
+
   const update = (next: MemoDoc) => {
     setDoc(next);
     saveMemo(next);
+    markSaved();
   };
 
   const syncCursor = () => {
@@ -67,6 +71,7 @@ export function MemoPad() {
           ))}
         </div>
         <div className="flex items-center gap-1">
+          <SaveStatus saving={saving} className="mr-1" />
           {isMd && (
             <Button
               type="button"
