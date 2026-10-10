@@ -4,19 +4,18 @@ import { Volume2, VolumeX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-interface MuteToggleProps {
-  muted: boolean;
-  onToggle: () => void;
-}
+import { setMuted, useMuted } from "../lib/muted";
 
-export function MuteToggle({ muted, onToggle }: MuteToggleProps) {
+export function MuteToggle() {
+  const muted = useMuted();
+
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon"
       aria-pressed={muted}
-      onClick={onToggle}
+      onClick={() => setMuted(!muted)}
     >
       {muted ? (
         <VolumeX aria-hidden="true" />

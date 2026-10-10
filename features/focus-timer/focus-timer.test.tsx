@@ -1,8 +1,11 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { act } from "react";
+import { act, useState } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { playChime } from "./lib/chime";
+import { MuteToggle } from "./components/mute-toggle";
+import { SessionBar } from "./components/session-bar";
+import { FocusSessionProvider } from "./focus-session";
 import { FocusTimer } from "./focus-timer";
 
 vi.mock("./lib/chime", () => ({
@@ -10,6 +13,18 @@ vi.mock("./lib/chime", () => ({
 }));
 
 const playChimeMock = vi.mocked(playChime);
+
+// 음소거 토글은 앱 헤더에 있으므로 타이머 화면 옆에 함께 그린다.
+function renderTimer({
+  onFinish,
+}: { onFinish?: (todoId: string | undefined) => void } = {}) {
+  return render(
+    <FocusSessionProvider onFinish={onFinish}>
+      <MuteToggle />
+      <FocusTimer />
+    </FocusSessionProvider>
+  );
+}
 
 function startSession({ title }: { title?: string } = {}) {
   if (title) {
@@ -36,14 +51,14 @@ afterEach(() => {
 
 describe("설정 화면", () => {
   test("처음 화면은 25분이 기본값이고 바로 시작할 수 있다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     expect(screen.getByRole("button", { name: "시작" })).toBeEnabled();
     expect(screen.getByLabelText("시간(분)")).toHaveValue(25);
   });
 
   test("제목을 비운 채로도 시작할 수 있다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     startSession();
 
@@ -51,7 +66,7 @@ describe("설정 화면", () => {
   });
 
   test("숫자 입력은 1분 미만, 60분 초과를 허용하지 않는다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     const minutesInput = screen.getByLabelText("시간(분)");
     fireEvent.change(minutesInput, { target: { value: "0" } });
@@ -66,7 +81,7 @@ describe("설정 화면", () => {
 
 describe("세션 진행", () => {
   test("제목을 적고 시작하면 세션 내내 그 문장이 화면에 보인다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     startSession({ title: "결제 모듈 리팩터링" });
 
@@ -74,7 +89,7 @@ describe("세션 진행", () => {
   });
 
   test("시작하면 시작 소리가 한 번 울린다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     startSession();
 
@@ -86,7 +101,7 @@ describe("세션 진행", () => {
   });
 
   test("세션이 도는 동안 문서 제목이 남은 시간과 제목으로 갱신된다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     startSession({ title: "결제 모듈 리팩터링" });
 
@@ -98,7 +113,7 @@ describe("세션 진행", () => {
   });
 
   test("일시정지하면 남은 시간이 멈추고, 다시 누르면 이어진다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     startSession({ title: "결제 모듈 리팩터링" });
 
@@ -122,7 +137,7 @@ describe("세션 진행", () => {
   });
 
   test("세션 도중 그만두면 메시지나 깜빡임 없이 처음 화면으로 돌아간다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     startSession({ title: "결제 모듈 리팩터링" });
     fireEvent.click(screen.getByRole("button", { name: "그만두기" }));
@@ -134,7 +149,7 @@ describe("세션 진행", () => {
 
 describe("세션 종료", () => {
   test("남은 시간이 0이 되면 소리·깜빡임·격려 메시지가 함께 뜬다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     const minutesInput = screen.getByLabelText("시간(분)");
     fireEvent.change(minutesInput, { target: { value: "1" } });
@@ -157,7 +172,7 @@ describe("세션 종료", () => {
   });
 
   test("종료 화면을 누르면 깜빡임이 멈춘다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     const minutesInput = screen.getByLabelText("시간(분)");
     fireEvent.change(minutesInput, { target: { value: "1" } });
@@ -176,7 +191,7 @@ describe("세션 종료", () => {
   });
 
   test("종료 화면에서 같은 제목·시간으로 다시 시작할 수 있다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     const minutesInput = screen.getByLabelText("시간(분)");
     fireEvent.change(minutesInput, { target: { value: "1" } });
@@ -194,7 +209,7 @@ describe("세션 종료", () => {
 
   test("세션이 끝나면 onFinish 콜백이 호출된다", () => {
     const onFinish = vi.fn();
-    render(<FocusTimer onFinish={onFinish} />);
+    renderTimer({ onFinish });
 
     const minutesInput = screen.getByLabelText("시간(분)");
     fireEvent.change(minutesInput, { target: { value: "1" } });
@@ -213,7 +228,7 @@ describe("세션 종료", () => {
 
 describe("전반", () => {
   test("소리를 끄면 시작·종료 소리가 울리지 않는다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     fireEvent.click(screen.getByRole("button", { name: "소리 끄기" }));
 
@@ -238,7 +253,7 @@ describe("전반", () => {
   });
 
   test("세션 진행 중에 소리를 끄면 이후 종료 소리가 울리지 않는다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     const minutesInput = screen.getByLabelText("시간(분)");
     fireEvent.change(minutesInput, { target: { value: "1" } });
@@ -264,11 +279,11 @@ describe("전반", () => {
   });
 
   test("새로고침에 해당하는 재마운트는 세션 기록 없이 처음 화면이다", () => {
-    const { unmount } = render(<FocusTimer />);
+    const { unmount } = renderTimer();
     startSession({ title: "결제 모듈 리팩터링" });
     unmount();
 
-    render(<FocusTimer />);
+    renderTimer();
 
     expect(screen.getByRole("button", { name: "시작" })).toBeInTheDocument();
     expect(screen.queryByText("결제 모듈 리팩터링")).toBeNull();
@@ -277,7 +292,7 @@ describe("전반", () => {
 
 describe("번갈아 반복 설정", () => {
   test("기본값은 꺼짐이고, 꺼진 상태에서는 다이얼 두 개가 보이지 않는다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     expect(
       screen.getByRole("button", { name: "번갈아 반복" })
@@ -286,7 +301,7 @@ describe("번갈아 반복 설정", () => {
   });
 
   test("스위치를 켜면 두 구간의 숫자 칸과 요약 문구가 보인다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
     const fields = within(screen.getByTestId("interval-fields-narrow"));
@@ -299,7 +314,7 @@ describe("번갈아 반복 설정", () => {
   });
 
   test("첫 구간을 바꾸면 두 번째 구간도 같이 바뀐다", () => {
-    render(<FocusTimer />);
+    renderTimer();
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
     const fields = within(screen.getByTestId("interval-fields-narrow"));
 
@@ -311,7 +326,7 @@ describe("번갈아 반복 설정", () => {
   });
 
   test("두 번째 구간을 직접 바꾸면 그 뒤로는 첫 구간과 따로 논다", () => {
-    render(<FocusTimer />);
+    renderTimer();
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
     const fields = within(screen.getByTestId("interval-fields-narrow"));
 
@@ -326,7 +341,7 @@ describe("번갈아 반복 설정", () => {
   });
 
   test("1초 미만이나 1시간 초과로는 정할 수 없다", () => {
-    render(<FocusTimer />);
+    renderTimer();
     fireEvent.click(screen.getByRole("button", { name: "번갈아 반복" }));
     const fields = within(screen.getByTestId("interval-fields-narrow"));
 
@@ -359,7 +374,7 @@ describe("번갈아 반복 진행", () => {
   }
 
   test("구간이 바뀔 때마다 서로 다른 전환음이 울린다", () => {
-    render(<FocusTimer />);
+    renderTimer();
     startIntervalSession();
     playChimeMock.mockClear();
 
@@ -382,7 +397,7 @@ describe("번갈아 반복 진행", () => {
   });
 
   test("진행 화면에 지금 구간과 구간의 남은 시간이 보인다", () => {
-    render(<FocusTimer />);
+    renderTimer();
     startIntervalSession();
 
     act(() => {
@@ -395,7 +410,7 @@ describe("번갈아 반복 진행", () => {
   });
 
   test("총 시간(1분)에 닿아도 그 사이클의 구간2까지 마저 채우고 100초에 끝난다", () => {
-    render(<FocusTimer />);
+    renderTimer();
     startIntervalSession();
 
     act(() => {
@@ -412,7 +427,7 @@ describe("번갈아 반복 진행", () => {
 
 describe("번갈아 반복 일시정지", () => {
   test("일시정지하면 지금 구간의 남은 시간도 함께 멈춘다", () => {
-    render(<FocusTimer />);
+    renderTimer();
 
     const minutesInput = screen.getByLabelText("시간(분)");
     fireEvent.change(minutesInput, { target: { value: "1" } });
@@ -450,19 +465,37 @@ describe("번갈아 반복 일시정지", () => {
   });
 });
 
-describe("메모장 모드", () => {
-  const memo = <textarea aria-label="메모 본문" />;
+describe("한 줄 바", () => {
+  // 화면 이동을 흉내 낸다. Provider는 그대로 두고 그 아래 화면만 바꾼다.
+  function Screens() {
+    const [screen, setScreen] = useState<"timer" | "other">("timer");
+    return (
+      <FocusSessionProvider>
+        <button
+          type="button"
+          onClick={() => setScreen(screen === "timer" ? "other" : "timer")}
+        >
+          화면 전환
+        </button>
+        {screen === "timer" ? <FocusTimer /> : <SessionBar />}
+      </FocusSessionProvider>
+    );
+  }
 
-  test("메모장을 넘기지 않으면 메모장 아이콘이 없다", () => {
-    render(<FocusTimer />);
-    expect(screen.queryByRole("button", { name: "메모장" })).not.toBeInTheDocument();
-  });
+  test("세션이 없으면 보이지 않고, showWhenIdle이면 설정된 시간과 시작 아이콘이 보인다", () => {
+    const { unmount } = render(
+      <FocusSessionProvider>
+        <SessionBar />
+      </FocusSessionProvider>
+    );
+    expect(screen.queryByRole("timer")).not.toBeInTheDocument();
+    unmount();
 
-  test("세션 밖에서 열면 설정된 시간과 시작 아이콘이 보이고, 연 채로 시작할 수 있다", () => {
-    render(<FocusTimer memoPad={memo} />);
-    fireEvent.click(screen.getByRole("button", { name: "메모장" }));
-
-    expect(screen.getByLabelText("메모 본문")).toBeInTheDocument();
+    render(
+      <FocusSessionProvider>
+        <SessionBar showWhenIdle />
+      </FocusSessionProvider>
+    );
     expect(screen.getByRole("timer")).toHaveTextContent("25:00");
 
     fireEvent.click(screen.getByRole("button", { name: "시작" }));
@@ -470,48 +503,47 @@ describe("메모장 모드", () => {
       vi.advanceTimersByTime(2_000);
     });
     expect(screen.getByRole("timer")).toHaveTextContent("24:58");
-    expect(screen.getByLabelText("메모 본문")).toBeInTheDocument();
     expect(playChimeMock).toHaveBeenCalledWith("start", expect.anything());
   });
 
-  test("세션 중에 열고 닫아도 세션이 끊기지 않고, 상단 바에서 일시정지·그만두기를 할 수 있다", () => {
-    render(<FocusTimer memoPad={memo} />);
-    startSession();
+  test("다른 화면으로 옮겨도 세션이 끊기지 않고, 한 줄 바에서 일시정지·그만두기를 할 수 있다", () => {
+    render(<Screens />);
+    startSession({ title: "결제 모듈 리팩터링" });
     act(() => {
       vi.advanceTimersByTime(5_000);
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "메모장" }));
+    fireEvent.click(screen.getByRole("button", { name: "화면 전환" }));
     act(() => {
       vi.advanceTimersByTime(5_000);
     });
     expect(screen.getByRole("timer")).toHaveTextContent("24:50");
+    expect(document.title).toBe("24:50 · 결제 모듈 리팩터링");
 
     fireEvent.click(screen.getByRole("button", { name: "일시정지" }));
-    fireEvent.click(screen.getByRole("button", { name: "이어서" }));
-
-    fireEvent.click(screen.getByRole("button", { name: "메모장 닫기" }));
-    expect(screen.queryByLabelText("메모 본문")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "화면 전환" }));
+    expect(screen.getByRole("button", { name: "이어서" })).toBeInTheDocument();
     expect(screen.getByRole("timer")).toHaveTextContent("24:50");
 
-    fireEvent.click(screen.getByRole("button", { name: "메모장" }));
+    fireEvent.click(screen.getByRole("button", { name: "화면 전환" }));
     fireEvent.click(screen.getByRole("button", { name: "그만두기" }));
-    expect(screen.getByRole("timer")).toHaveTextContent("25:00");
-    expect(screen.getByRole("button", { name: "시작" })).toBeInTheDocument();
+    expect(screen.queryByRole("timer")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "화면 전환" }));
+    expect(screen.getByLabelText("세션 제목")).toHaveValue("결제 모듈 리팩터링");
   });
 
-  test("메모장을 연 채로 세션이 끝나면 종료 소리가 나고 한 판 더 아이콘이 보인다", () => {
-    render(<FocusTimer memoPad={memo} />);
+  test("다른 화면에 있을 때 세션이 끝나면 종료 소리가 나고 다시 시작 아이콘이 보인다", () => {
+    render(<Screens />);
     fireEvent.change(screen.getByLabelText("시간(분)"), { target: { value: "1" } });
     fireEvent.blur(screen.getByLabelText("시간(분)"));
-    fireEvent.click(screen.getByRole("button", { name: "메모장" }));
-    fireEvent.click(screen.getByRole("button", { name: "시작" }));
+    startSession();
+    fireEvent.click(screen.getByRole("button", { name: "화면 전환" }));
 
     act(() => {
       vi.advanceTimersByTime(61_000);
     });
     expect(playChimeMock).toHaveBeenCalledWith("end", expect.anything());
-    expect(screen.getByLabelText("메모 본문")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "다시 시작" })).toBeInTheDocument();
   });
 });

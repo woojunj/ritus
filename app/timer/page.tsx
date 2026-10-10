@@ -1,5 +1,5 @@
-import { FocusSessionEntry } from "../_components/focus-session-entry";
+import { FocusTimer } from "@/features/focus-timer";
 
 export default function TimerPage() {
-  return <FocusSessionEntry backHref="/todos" />;
+  return <FocusTimer />;
 }
