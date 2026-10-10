@@ -102,6 +102,15 @@ export function createNote(): ConscienceNoteItem {
   };
 }
 
+/** 한 장에서 덕목별로 고른 단계만 뽑는다. */
+export function noteLevels(
+  note: ConscienceNoteItem
+): Record<VirtueKey, number | null> {
+  return Object.fromEntries(
+    VIRTUES.map((virtue) => [virtue.key, note.virtues[virtue.key].level])
+  ) as Record<VirtueKey, number | null>;
+}
+
 /** 날짜가 최근인 것부터, 같은 날짜면 나중에 만든 것부터. */
 export function sortNotes(notes: ConscienceNoteItem[]): ConscienceNoteItem[] {
   return [...notes].sort(

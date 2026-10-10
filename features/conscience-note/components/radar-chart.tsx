@@ -11,14 +11,58 @@ import { LEVELS, VIRTUES, type VirtueKey } from "../lib/form";
 
 interface RadarChartProps {
   levels: Record<VirtueKey, number | null>;
+  /**
+   * 목록에 넣는 작은 도표. 덕목과 단계 이름, 안쪽 원을 빼고 바깥 원과 도형만 그린다.
+   * 옆의 글이 내용을 전하므로 스크린리더에는 숨긴다.
+   */
+  compact?: boolean;
   className?: string;
 }
 
 const LABEL_GAP = 20;
 
 // 양식의 육각형 도표. 여섯 축과 세 겹의 동심원 위에 고른 단계를 점과 도형으로 그린다.
-export function RadarChart({ levels, className }: RadarChartProps) {
+export function RadarChart({ levels, compact = false, className }: RadarChartProps) {
   const points = shapePoints(levels);
+  const polygon = points.length > 1 && (
+    <polygon
+      points={points.map((point) => `${point.x},${point.y}`).join(" ")}
+      strokeLinejoin="round"
+      className={cn(
+        "fill-primary/20 stroke-primary",
+        compact ? "stroke-[6]" : "stroke-2"
+      )}
+    />
+  );
+  const dots = points.map((point) => (
+    <circle
+      key={point.key}
+      data-virtue={point.key}
+      cx={point.x}
+      cy={point.y}
+      r={compact ? 8 : 4}
+      className="fill-primary"
+    />
+  ));
+
+  if (compact) {
+    return (
+      <svg
+        aria-hidden="true"
+        data-testid="note-chart"
+        viewBox="-100 -100 200 200"
+        className={cn("size-9", className)}
+      >
+        <circle
+          r={CHART_RADIUS}
+          className="fill-none stroke-muted-foreground/40 stroke-[5]"
+        />
+        {polygon}
+        {dots}
+      </svg>
+    );
+  }
+
   const summary = VIRTUES.filter((virtue) => levels[virtue.key] !== null)
     .map((virtue) => `${virtue.name} ${LEVELS[levels[virtue.key]!]}`)
     .join(", ");
@@ -76,23 +120,8 @@ export function RadarChart({ levels, className }: RadarChartProps) {
           {level}
         </text>
       ))}
-      {points.length > 1 && (
-        <polygon
-          points={points.map((point) => `${point.x},${point.y}`).join(" ")}
-          strokeLinejoin="round"
-          className="fill-primary/20 stroke-primary stroke-2"
-        />
-      )}
-      {points.map((point) => (
-        <circle
-          key={point.key}
-          data-virtue={point.key}
-          cx={point.x}
-          cy={point.y}
-          r={4}
-          className="fill-primary"
-        />
-      ))}
+      {polygon}
+      {dots}
     </svg>
   );
 }

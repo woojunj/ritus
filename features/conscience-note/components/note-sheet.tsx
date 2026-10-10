@@ -1,23 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState, type ComponentProps } from "react";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { Check, Trash2 } from "lucide-react";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { SaveStatus, useSaveStatus } from "@/components/save-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 import { LEVELS, VIRTUES, type VirtueKey } from "../lib/form";
-import type { ConscienceNoteItem } from "../lib/storage";
+import { noteLevels, type ConscienceNoteItem } from "../lib/storage";
+import { DeleteNoteDialog } from "./delete-note-dialog";
 import { RadarChart } from "./radar-chart";
 
 interface NoteSheetProps {
@@ -48,11 +41,16 @@ const NAME_CLASS = "font-heading text-sm font-semibold sm:pt-1.5";
 export function NoteSheet({
   note,
   focusMatter = false,
-  onChange,
+  onChange: onNoteChange,
   onBack,
   onDelete,
 }: NoteSheetProps) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const { saving, markSaved } = useSaveStatus();
+  const onChange = (next: ConscienceNoteItem) => {
+    onNoteChange(next);
+    markSaved();
+  };
   const matterRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -69,37 +67,39 @@ export function NoteSheet({
     });
   };
 
-  const levels = Object.fromEntries(
-    VIRTUES.map((virtue) => [virtue.key, note.virtues[virtue.key].level])
-  ) as Record<VirtueKey, number | null>;
-
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col px-4 py-4">
-      <div className="flex items-center justify-between pb-3">
-        <Button type="button" variant="ghost" size="icon" onClick={onBack}>
-          <ArrowLeft aria-hidden="true" />
-          <span className="sr-only">목록으로</span>
-        </Button>
-        <Input
-          type="date"
-          aria-label="날짜"
-          value={note.date}
-          onChange={(e) => {
-            // 날짜를 지우면 목록에서 자리를 잃으므로 빈 값은 받지 않는다.
-            if (e.target.value) onChange({ ...note, date: e.target.value });
-          }}
-          className="w-auto"
-        />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-          onClick={() => setConfirmingDelete(true)}
-        >
-          <Trash2 aria-hidden="true" />
-          <span className="sr-only">양심노트 삭제</span>
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-3">
+        <div className="flex items-center gap-2">
+          <Input
+            type="date"
+            aria-label="날짜"
+            value={note.date}
+            onChange={(e) => {
+              // 날짜를 지우면 목록에서 자리를 잃으므로 빈 값은 받지 않는다.
+              if (e.target.value) onChange({ ...note, date: e.target.value });
+            }}
+            className="w-auto"
+          />
+          <SaveStatus saving={saving} />
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => setConfirmingDelete(true)}
+          >
+            <Trash2 aria-hidden="true" />
+            <span className="sr-only">양심노트 삭제</span>
+          </Button>
+          {/* 쓴 내용은 이미 저장돼 있다. 완료는 다 썼다는 마무리 동작으로 목록에 돌아갈 뿐이다. */}
+          <Button type="button" onClick={onBack}>
+            <Check aria-hidden="true" />
+            완료
+          </Button>
+        </div>
       </div>
 
       <section className={ROW_CLASS}>
@@ -173,28 +173,15 @@ export function NoteSheet({
             onChange={(e) => onChange({ ...note, conclusion: e.target.value })}
             className="min-h-40 md:min-h-56 md:flex-1"
           />
-          <RadarChart levels={levels} className="shrink-0 md:w-64" />
+          <RadarChart levels={noteLevels(note)} className="shrink-0 md:w-64" />
         </div>
       </section>
 
-      <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>이 양심노트를 지울까요?</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setConfirmingDelete(false);
-                onDelete();
-              }}
-            >
-              확인
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteNoteDialog
+        open={confirmingDelete}
+        onOpenChange={setConfirmingDelete}
+        onConfirm={onDelete}
+      />
     </div>
   );
 }
