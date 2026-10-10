@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ListTodo, NotebookPen, Timer, type LucideIcon } from "lucide-react";
+import {
+  Hexagon,
+  ListTodo,
+  NotebookPen,
+  Timer,
+  type LucideIcon,
+} from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MuteToggle } from "@/features/focus-timer";
@@ -12,6 +18,7 @@ const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/", label: "타이머", icon: Timer },
   { href: "/memo", label: "메모장", icon: NotebookPen },
   { href: "/todos", label: "할 일 목록", icon: ListTodo },
+  { href: "/conscience", label: "양심노트", icon: Hexagon },
 ];
 
 // /timer는 /와 같은 타이머 화면이다.
@@ -20,7 +27,7 @@ function isCurrent(href: string, pathname: string): boolean {
   return pathname === href;
 }
 
-// 세 화면이 함께 쓰는 헤더. 같은 자리에 같은 순서로 세 화면의 아이콘을 두고
+// 네 화면이 함께 쓰는 헤더. 같은 자리에 같은 순서로 네 화면의 아이콘을 두고
 // 지금 화면을 강조한다.
 export function AppHeader() {
   const pathname = usePathname() ?? "/";
