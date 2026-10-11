@@ -61,5 +61,9 @@ export const VIRTUES: Virtue[] = [
   },
 ];
 
+// 홍익학당 양심성찰 도우미(ChatGPT GPT).
+export const HELPER_URL =
+  "https://chatgpt.com/g/g-67fcd60485108191af20ff2e26c42996-hongighagdang-yangsimseongcal-helper";
+
 export const COPYRIGHT_NOTICE =
   "© 이 양심노트의 내용과 형식은 저작권자(윤홍식) 또는 홍익학당의 허가 없이 상업적 용도로 활용하실 수 없습니다.";

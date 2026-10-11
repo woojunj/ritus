@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ConscienceNote } from "./conscience-note";
-import { COPYRIGHT_NOTICE } from "./lib/form";
+import { COPYRIGHT_NOTICE, HELPER_URL } from "./lib/form";
 import { formatNoteDate, todayIso } from "./lib/storage";
 
 beforeEach(() => {
@@ -192,6 +192,15 @@ describe("양심노트 한 장", () => {
       })
     ).toHaveAttribute("aria-pressed", "true");
     expect(chartDots()).toHaveLength(1);
+  });
+
+  test("양심성찰 도우미 링크가 새 탭으로 열린다", () => {
+    render(<ConscienceNote />);
+    startNewNote();
+
+    const link = screen.getByRole("link", { name: "양심성찰 도우미 열기" });
+    expect(link).toHaveAttribute("href", HELPER_URL);
+    expect(link).toHaveAttribute("target", "_blank");
   });
 
   test("복사 버튼을 누르면 한 장이 양식 순서대로 클립보드에 담긴다", async () => {
