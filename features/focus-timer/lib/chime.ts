@@ -26,6 +26,18 @@ const FREQUENCIES: Record<ChimeKind, number> = {
   "interval-second": 520,
 };
 
+// iOS는 사용자가 누른 순간에 연 오디오 컨텍스트만 소리를 낸다. 시작 버튼을
+// 누를 때 연 것을 닫지 않고 두었다가, 타이머가 울리는 구간 전환음과 종료음도
+// 그 컨텍스트로 낸다.
+let shared: { ctor: typeof AudioContext; ctx: AudioContext } | null = null;
+
+function sharedContext(Ctor: typeof AudioContext): AudioContext {
+  if (!shared || shared.ctor !== Ctor || shared.ctx.state === "closed") {
+    shared = { ctor: Ctor, ctx: new Ctor() };
+  }
+  return shared.ctx;
+}
+
 export function playChime(kind: ChimeKind, options: ChimeOptions = {}): void {
   const { muted = false } = options;
   if (muted) return;
@@ -33,7 +45,10 @@ export function playChime(kind: ChimeKind, options: ChimeOptions = {}): void {
   const Ctor = resolveAudioContextCtor(options.audioContextCtor);
   if (!Ctor) return;
 
-  const ctx = new Ctor();
+  const ctx = sharedContext(Ctor);
+  // 화면이 가려졌다 돌아오면 멈춰 있을 수 있다.
+  if (ctx.state !== "running") void ctx.resume?.();
+
   const oscillator = ctx.createOscillator();
   const gain = ctx.createGain();
   oscillator.connect(gain);
@@ -46,5 +61,4 @@ export function playChime(kind: ChimeKind, options: ChimeOptions = {}): void {
 
   oscillator.start();
   oscillator.stop(ctx.currentTime + 0.45);
-  oscillator.onended = () => ctx.close();
 }

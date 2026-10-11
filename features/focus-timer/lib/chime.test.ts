@@ -48,6 +48,29 @@ describe("playChime", () => {
     expect(Ctor).not.toHaveBeenCalled();
   });
 
+  test("시작할 때 연 오디오 컨텍스트를 닫지 않고 이후 소리에도 다시 쓴다", () => {
+    const { Ctor, ctx, oscillator } = createFakeAudioContext();
+
+    playChime("start", { muted: false, audioContextCtor: Ctor as never });
+    oscillator.onended?.();
+    playChime("interval-second", { muted: false, audioContextCtor: Ctor as never });
+    playChime("end", { muted: false, audioContextCtor: Ctor as never });
+
+    expect(Ctor).toHaveBeenCalledTimes(1);
+    expect(ctx.close).not.toHaveBeenCalled();
+    expect(oscillator.start).toHaveBeenCalledTimes(3);
+  });
+
+  test("컨텍스트가 멈춰 있으면 다시 깨워서 소리를 낸다", () => {
+    const { Ctor, ctx } = createFakeAudioContext();
+    const resume = vi.fn();
+    Object.assign(ctx, { state: "suspended", resume });
+
+    playChime("end", { muted: false, audioContextCtor: Ctor as never });
+
+    expect(resume).toHaveBeenCalledTimes(1);
+  });
+
   test("AudioContext를 쓸 수 없으면 조용히 아무 일도 하지 않는다", () => {
     expect(() =>
       playChime("start", { muted: false, audioContextCtor: undefined })
