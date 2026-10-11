@@ -71,6 +71,25 @@ describe("playChime", () => {
     expect(resume).toHaveBeenCalledTimes(1);
   });
 
+  test("다른 곳에 다녀와 컨텍스트가 멈춰 있으면, 화면이 다시 보이거나 화면을 누를 때 깨운다", () => {
+    const { Ctor, ctx } = createFakeAudioContext();
+    const resume = vi.fn();
+    Object.assign(ctx, { state: "running", resume });
+    playChime("start", { muted: false, audioContextCtor: Ctor as never });
+    expect(resume).not.toHaveBeenCalled();
+
+    Object.assign(ctx, { state: "interrupted" });
+    document.dispatchEvent(new Event("visibilitychange"));
+    expect(resume).toHaveBeenCalledTimes(1);
+
+    document.dispatchEvent(new Event("pointerdown"));
+    expect(resume).toHaveBeenCalledTimes(2);
+
+    Object.assign(ctx, { state: "running" });
+    document.dispatchEvent(new Event("pointerdown"));
+    expect(resume).toHaveBeenCalledTimes(2);
+  });
+
   test("AudioContext를 쓸 수 없으면 조용히 아무 일도 하지 않는다", () => {
     expect(() =>
       playChime("start", { muted: false, audioContextCtor: undefined })
