@@ -1,3 +1,5 @@
+import type { TextFile } from "@/lib/download";
+
 import { LEVELS, VIRTUES } from "./form";
 import { formatNoteDate, type ConscienceNoteItem } from "./storage";
 
@@ -15,4 +17,13 @@ export function noteToText(note: ConscienceNoteItem): string {
     `[최종 결론]\n${note.conclusion.trim()}`,
   ];
   return sections.map((section) => section.trimEnd()).join("\n\n");
+}
+
+/** 한 장을 내려받을 파일. 이름에는 그 한 장의 날짜가 들어간다. */
+export function noteFile(note: ConscienceNoteItem): TextFile {
+  return {
+    name: `ritus-conscience-${note.date.replaceAll("-", "")}.txt`,
+    text: noteToText(note),
+    type: "text/plain",
+  };
 }

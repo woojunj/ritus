@@ -237,6 +237,39 @@ describe("양심노트 한 장", () => {
     vi.unstubAllGlobals();
   });
 
+  test("저장 버튼을 누르면 그 한 장을 날짜가 든 txt 파일로 내려받는다", async () => {
+    let lastBlob: Blob | null = null;
+    let downloadName = "";
+    vi.stubGlobal(
+      "URL",
+      Object.assign(URL, {
+        createObjectURL: vi.fn((blob: Blob) => {
+          lastBlob = blob;
+          return "blob:note";
+        }),
+        revokeObjectURL: vi.fn(),
+      })
+    );
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        downloadName = this.download;
+      });
+
+    render(<ConscienceNote />);
+    startNewNote();
+    fireEvent.change(screen.getByLabelText("날짜"), { target: { value: "2026-10-01" } });
+    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "약속에 늦었다" } });
+    fireEvent.click(screen.getByRole("button", { name: "파일로 저장" }));
+
+    expect(downloadName).toBe("ritus-conscience-20261001.txt");
+    const text = await lastBlob!.text();
+    expect(text).toContain("양심노트 2026년 10월 1일");
+    expect(text).toContain("[사안]\n약속에 늦었다");
+    clickSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
   test("삭제는 먼저 묻고, 확인하면 그 한 장만 목록에서 사라진다", () => {
     render(<ConscienceNote />);
     startNewNote();

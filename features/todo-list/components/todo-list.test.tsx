@@ -93,6 +93,39 @@ describe("TodoList", () => {
     expect(screen.getByText("×1")).toBeInTheDocument();
   });
 
+  test("저장 버튼을 누르면 할 일 목록을 CSV 파일로 내려받는다", async () => {
+    let lastBlob: Blob | null = null;
+    let downloadName = "";
+    vi.stubGlobal(
+      "URL",
+      Object.assign(URL, {
+        createObjectURL: vi.fn((blob: Blob) => {
+          lastBlob = blob;
+          return "blob:todos";
+        }),
+        revokeObjectURL: vi.fn(),
+      })
+    );
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        downloadName = this.download;
+      });
+
+    render(<TodoList />);
+    fireEvent.change(screen.getByLabelText("새 할 일"), { target: { value: "글쓰기" } });
+    fireEvent.click(screen.getByRole("button", { name: "할 일 추가" }));
+    fireEvent.click(screen.getByRole("button", { name: "파일로 저장" }));
+
+    expect(downloadName).toMatch(/^ritus-todos-\d{8}\.csv$/);
+    const bytes = new Uint8Array(await lastBlob!.arrayBuffer());
+    // 엑셀이 한글을 읽도록 UTF-8 BOM으로 시작한다.
+    expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
+    expect(new TextDecoder().decode(bytes)).toBe("할 일,완주 횟수\n글쓰기,0");
+    clickSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
   test("복사 버튼을 누르면 할 일과 완주 횟수가 CSV로 클립보드에 담긴다", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal("navigator", Object.assign(navigator, { clipboard: { writeText } }));

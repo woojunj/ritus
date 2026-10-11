@@ -15,9 +15,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
+import { DownloadButton } from "@/components/download-button";
 import { Input } from "@/components/ui/input";
 
-import { todosToCsv } from "../lib/csv";
+import { todosFile, todosToCsv } from "../lib/csv";
 import {
   saveItems,
   subscribeTodos,
@@ -132,6 +133,10 @@ export function TodoList({
                   )}
                   <CopyButton
                     getText={() => todosToCsv(items)}
+                    className="size-7 text-muted-foreground hover:text-foreground"
+                  />
+                  <DownloadButton
+                    getFile={() => todosFile(items)}
                     className="size-7 text-muted-foreground hover:text-foreground"
                   />
                   <Button

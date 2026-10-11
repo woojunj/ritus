@@ -4,12 +4,13 @@ import { useEffect, useRef, useState, type ComponentProps } from "react";
 import { Check, Sparkles, Trash2 } from "lucide-react";
 
 import { CopyButton } from "@/components/copy-button";
+import { DownloadButton } from "@/components/download-button";
 import { SaveStatus, useSaveStatus } from "@/components/save-status";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-import { noteToText } from "../lib/copy-text";
+import { noteFile, noteToText } from "../lib/copy-text";
 import { HELPER_URL, LEVELS, VIRTUES, type VirtueKey } from "../lib/form";
 import { noteLevels, type ConscienceNoteItem } from "../lib/storage";
 import { DeleteNoteDialog } from "./delete-note-dialog";
@@ -101,6 +102,10 @@ export function NoteSheet({
           </a>
           <CopyButton
             getText={() => noteToText(note)}
+            className="text-muted-foreground"
+          />
+          <DownloadButton
+            getFile={() => noteFile(note)}
             className="text-muted-foreground"
           />
           <Button

@@ -2,14 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Download, Eye, PencilLine } from "lucide-react";
+import { Eye, PencilLine } from "lucide-react";
 
 import { CopyButton } from "@/components/copy-button";
+import { DownloadButton } from "@/components/download-button";
 import { SaveStatus, useSaveStatus } from "@/components/save-status";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { downloadMemo } from "./lib/download";
+import { memoFile } from "./lib/download";
 import { countChars, cursorPosition, lineCount } from "./lib/stats";
 import { loadMemo, saveMemo, type MemoDoc, type MemoFormat } from "./lib/storage";
 
@@ -92,15 +93,7 @@ export function MemoPad() {
             </Button>
           )}
           <CopyButton getText={() => doc.text} />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="파일로 저장"
-            onClick={() => downloadMemo(doc.text, doc.format)}
-          >
-            <Download aria-hidden="true" />
-          </Button>
+          <DownloadButton getFile={() => memoFile(doc.text, doc.format)} />
         </div>
       </div>
 
