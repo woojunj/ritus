@@ -34,8 +34,28 @@ let shared: { ctor: typeof AudioContext; ctx: AudioContext } | null = null;
 function sharedContext(Ctor: typeof AudioContext): AudioContext {
   if (!shared || shared.ctor !== Ctor || shared.ctx.state === "closed") {
     shared = { ctor: Ctor, ctx: new Ctor() };
+    watchForWake();
   }
   return shared.ctx;
+}
+
+function wake(): void {
+  const ctx = shared?.ctx;
+  if (ctx && ctx.state !== "running" && ctx.state !== "closed") void ctx.resume?.();
+}
+
+let watching = false;
+
+// 다른 앱이나 탭에 다녀오면 iOS가 컨텍스트를 멈춰 둔다. 화면이 다시 보일 때
+// 깨워 보고, 그래도 안 깨면 사용자가 화면을 누르는 순간에 다시 깨운다.
+function watchForWake(): void {
+  if (watching || typeof document === "undefined") return;
+  watching = true;
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") wake();
+  });
+  document.addEventListener("pointerdown", wake);
+  document.addEventListener("keydown", wake);
 }
 
 export function playChime(kind: ChimeKind, options: ChimeOptions = {}): void {
