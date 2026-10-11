@@ -14,6 +14,7 @@ import { playChime } from "./lib/chime";
 import { sessionEndSeconds, sliceAt, type IntervalPlan } from "./lib/cycle";
 import { pickEncouragement } from "./lib/encouragements";
 import { useMuted } from "./lib/muted";
+import { useScreenWakeLock } from "./lib/wake-lock";
 import { clampMinutes, formatTabTitle } from "./lib/time";
 
 export type Phase = "setup" | "running" | "paused" | "ended";
@@ -229,6 +230,9 @@ export function FocusSessionProvider({
   const dismissBlink = useCallback(() => setBlinking(false), []);
 
   useEffect(() => clearTick, [clearTick]);
+
+  // 화면이 꺼지면 브라우저가 타이머와 소리를 멈추므로, 도는 동안에는 켜 둔다.
+  useScreenWakeLock(phase === "running");
 
   useEffect(() => {
     if (phase === "running" || phase === "paused") {
