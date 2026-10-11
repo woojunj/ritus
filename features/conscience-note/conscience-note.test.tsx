@@ -58,6 +58,95 @@ describe("양심노트 목록", () => {
   });
 });
 
+describe("양심노트 불러오기", () => {
+  const FILE_TEXT = [
+    "양심노트 2026년 10월 5일",
+    "[사안]\n약속에 늦었다\n\n둘째 문단",
+    "[몰입]",
+    "[사랑]",
+    "[정의]",
+    "[예절]",
+    "[성실] 찜자\n미리 나서지 않았다",
+    "[지혜]",
+    "[최종 결론]\n먼저 사과한다",
+    "\n양심노트 2026년 10월 1일",
+    "[사안]\n회의에서 말을 끊었다",
+    "[몰입]",
+    "[사랑]",
+    "[정의]",
+    "[예절]",
+    "[성실]",
+    "[지혜]",
+    "[최종 결론]",
+  ].join("\n\n");
+
+  function importFile(text: string) {
+    fireEvent.change(screen.getByLabelText("양심노트 불러오기 파일"), {
+      target: { files: [new File([text], "notes.txt", { type: "text/plain" })] },
+    });
+  }
+
+  test("내려받은 파일을 불러오면 한 장들이 쓴 내용 그대로 목록에 더해지고, 다시 불러와도 겹치지 않는다", async () => {
+    render(<ConscienceNote />);
+    importFile(FILE_TEXT);
+
+    const items = await screen.findAllByRole("listitem");
+    expect(items).toHaveLength(2);
+    expect(items[0]).toHaveTextContent("2026년 10월 5일");
+    expect(items[0]).toHaveTextContent("약속에 늦었다");
+    expect(items[1]).toHaveTextContent("회의에서 말을 끊었다");
+
+    fireEvent.click(screen.getByRole("button", { name: /2026년 10월 5일/ }));
+    expect(screen.getByLabelText("날짜")).toHaveValue("2026-10-05");
+    expect(screen.getByLabelText("사안")).toHaveValue("약속에 늦었다\n\n둘째 문단");
+    expect(screen.getByLabelText("성실")).toHaveValue("미리 나서지 않았다");
+    expect(screen.getByLabelText("최종 결론")).toHaveValue("먼저 사과한다");
+    expect(
+      within(screen.getByRole("group", { name: "성실 단계" })).getByRole("button", {
+        name: "찜자",
+      })
+    ).toHaveAttribute("aria-pressed", "true");
+    backToList();
+
+    importFile(FILE_TEXT);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+  });
+
+  test("모두 파일로 저장한 글은 다시 불러올 수 있는 형태다", async () => {
+    let lastBlob: Blob | null = null;
+    vi.stubGlobal(
+      "URL",
+      Object.assign(URL, {
+        createObjectURL: vi.fn((blob: Blob) => {
+          lastBlob = blob;
+          return "blob:notes";
+        }),
+        revokeObjectURL: vi.fn(),
+      })
+    );
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => {});
+
+    const { unmount } = render(<ConscienceNote />);
+    importFile(FILE_TEXT);
+    await screen.findAllByRole("listitem");
+    fireEvent.click(screen.getByRole("button", { name: "모두 파일로 저장" }));
+    const saved = await lastBlob!.text();
+    unmount();
+    localStorage.clear();
+
+    render(<ConscienceNote />);
+    importFile(saved);
+    const items = await screen.findAllByRole("listitem");
+    expect(items).toHaveLength(2);
+    expect(items[0]).toHaveTextContent("약속에 늦었다");
+    clickSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+});
+
 describe("양심노트 목록의 도표와 삭제", () => {
   test("단계를 고른 한 장에만 작은 도표가 보인다", () => {
     render(<ConscienceNote />);
@@ -234,6 +323,39 @@ describe("양심노트 한 장", () => {
       ].join("\n\n")
     );
     expect(await screen.findByRole("button", { name: "복사됨" })).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  test("저장 버튼을 누르면 그 한 장을 날짜가 든 txt 파일로 내려받는다", async () => {
+    let lastBlob: Blob | null = null;
+    let downloadName = "";
+    vi.stubGlobal(
+      "URL",
+      Object.assign(URL, {
+        createObjectURL: vi.fn((blob: Blob) => {
+          lastBlob = blob;
+          return "blob:note";
+        }),
+        revokeObjectURL: vi.fn(),
+      })
+    );
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        downloadName = this.download;
+      });
+
+    render(<ConscienceNote />);
+    startNewNote();
+    fireEvent.change(screen.getByLabelText("날짜"), { target: { value: "2026-10-01" } });
+    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "약속에 늦었다" } });
+    fireEvent.click(screen.getByRole("button", { name: "파일로 저장" }));
+
+    expect(downloadName).toBe("ritus-conscience-20261001.txt");
+    const text = await lastBlob!.text();
+    expect(text).toContain("양심노트 2026년 10월 1일");
+    expect(text).toContain("[사안]\n약속에 늦었다");
+    clickSpy.mockRestore();
     vi.unstubAllGlobals();
   });
 

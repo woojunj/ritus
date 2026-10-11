@@ -3,11 +3,14 @@
 import { useState, useSyncExternalStore } from "react";
 import { Hexagon, Plus, Trash2 } from "lucide-react";
 
+import { DownloadButton } from "@/components/download-button";
 import { Button } from "@/components/ui/button";
+import { UploadButton } from "@/components/upload-button";
 
 import { DeleteNoteDialog } from "./components/delete-note-dialog";
 import { NoteSheet } from "./components/note-sheet";
 import { RadarChart } from "./components/radar-chart";
+import { allNotesFile, newNotesOnly, parseNotes } from "./lib/copy-text";
 import { COPYRIGHT_NOTICE } from "./lib/form";
 import {
   createNote,
@@ -44,6 +47,12 @@ export function ConscienceNote() {
     saveNotes(notes.map((note) => (note.id === next.id ? next : note)));
   }
 
+  // 내려받은 파일의 한 장들을 목록에 더한다. 이미 있는 것과 같은 한 장은 건너뛴다.
+  function handleImport(text: string) {
+    const added = newNotesOnly(parseNotes(text), notes);
+    if (added.length > 0) saveNotes([...added, ...notes]);
+  }
+
   function handleDelete(id: string) {
     saveNotes(notes.filter((note) => note.id !== id));
     setOpenId(null);
@@ -65,10 +74,25 @@ export function ConscienceNote() {
           <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-8">
             <div className="flex items-center justify-between">
               <h1 className="font-heading text-lg font-semibold">양심노트</h1>
-              <Button type="button" size="icon" onClick={handleCreate}>
-                <Plus aria-hidden="true" />
-                <span className="sr-only">새 양심노트 쓰기</span>
-              </Button>
+              <div className="flex items-center gap-1">
+                <UploadButton
+                  accept=".txt,text/plain"
+                  label="양심노트 불러오기"
+                  onText={handleImport}
+                  className="text-muted-foreground"
+                />
+                {notes.length > 0 && (
+                  <DownloadButton
+                    getFile={() => allNotesFile(notes)}
+                    label="모두 파일로 저장"
+                    className="text-muted-foreground"
+                  />
+                )}
+                <Button type="button" size="icon" onClick={handleCreate}>
+                  <Plus aria-hidden="true" />
+                  <span className="sr-only">새 양심노트 쓰기</span>
+                </Button>
+              </div>
             </div>
 
             {notes.length === 0 ? (
