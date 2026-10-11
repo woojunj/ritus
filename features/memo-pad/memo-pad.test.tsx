@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { MemoPad } from "./memo-pad";
@@ -89,6 +89,40 @@ describe("일반 텍스트 메모장", () => {
     expect(writeText).toHaveBeenCalledWith("복사할 글");
     expect(await screen.findByRole("button", { name: "복사됨" })).toBeInTheDocument();
     vi.unstubAllGlobals();
+  });
+});
+
+describe("메모장 불러오기", () => {
+  function importFile(text: string, name: string) {
+    fireEvent.change(screen.getByLabelText("파일 불러오기 파일"), {
+      target: { files: [new File([text], name)] },
+    });
+  }
+
+  test("비어 있으면 묻지 않고 불러오고, 형식은 파일 확장자를 따른다", async () => {
+    render(<MemoPad />);
+    importFile("# 불러온 글", "note.md");
+
+    await screen.findByDisplayValue("# 불러온 글");
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(screen.getByRole("tab", { name: "md" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  test("쓰던 글이 있으면 먼저 묻고, 취소하면 그대로 두고 확인하면 바꾼다", async () => {
+    render(<MemoPad />);
+    typeInto(screen.getByLabelText("메모 본문"), "쓰던 글");
+
+    importFile("불러온 글", "note.txt");
+    const dialog = await screen.findByRole("alertdialog");
+    expect(dialog).toHaveTextContent("쓰던 글을 불러온 파일로 바꿀까요?");
+    fireEvent.click(within(dialog).getByRole("button", { name: "취소" }));
+    expect(screen.getByLabelText("메모 본문")).toHaveValue("쓰던 글");
+
+    importFile("불러온 글", "note.txt");
+    fireEvent.click(
+      within(await screen.findByRole("alertdialog")).getByRole("button", { name: "확인" })
+    );
+    expect(screen.getByLabelText("메모 본문")).toHaveValue("불러온 글");
   });
 });
 
