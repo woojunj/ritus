@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Download, Eye, PencilLine } from "lucide-react";
 
+import { CopyButton } from "@/components/copy-button";
 import { SaveStatus, useSaveStatus } from "@/components/save-status";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -90,6 +91,7 @@ export function MemoPad() {
               )}
             </Button>
           )}
+          <CopyButton getText={() => doc.text} />
           <Button
             type="button"
             variant="ghost"

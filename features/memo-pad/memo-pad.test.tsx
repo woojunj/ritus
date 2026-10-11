@@ -77,6 +77,19 @@ describe("일반 텍스트 메모장", () => {
     clickSpy.mockRestore();
     vi.unstubAllGlobals();
   });
+
+  test("복사 버튼을 누르면 현재 글이 클립보드에 담기고 잠깐 복사됨으로 바뀐다", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", Object.assign(navigator, { clipboard: { writeText } }));
+
+    render(<MemoPad />);
+    typeInto(screen.getByLabelText("메모 본문"), "복사할 글");
+    fireEvent.click(screen.getByRole("button", { name: "클립보드로 복사" }));
+
+    expect(writeText).toHaveBeenCalledWith("복사할 글");
+    expect(await screen.findByRole("button", { name: "복사됨" })).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
 });
 
 describe("txt/md 형식", () => {
