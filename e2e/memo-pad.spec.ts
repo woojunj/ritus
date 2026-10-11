@@ -49,3 +49,20 @@ test("복사 버튼을 누르면 메모가 클립보드에 담긴다", async ({ 
   await expect(page.getByRole("button", { name: "복사됨" })).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("복사할 글");
 });
+
+test("파일을 불러오면 쓰던 글을 바꿀지 묻고, 확인하면 바뀐다", async ({ page }) => {
+  await page.goto("/memo");
+  await page.getByLabel("메모 본문").fill("쓰던 글");
+
+  await page.getByLabel("파일 불러오기 파일").setInputFiles({
+    name: "note.md",
+    mimeType: "text/markdown",
+    buffer: Buffer.from("# 불러온 글"),
+  });
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog).toContainText("쓰던 글을 불러온 파일로 바꿀까요?");
+  await dialog.getByRole("button", { name: "확인" }).click();
+
+  await expect(page.getByLabel("메모 본문")).toHaveValue("# 불러온 글");
+  await expect(page.getByRole("tab", { name: "md" })).toHaveAttribute("aria-selected", "true");
+});

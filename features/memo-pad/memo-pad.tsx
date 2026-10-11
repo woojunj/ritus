@@ -7,7 +7,17 @@ import { Eye, PencilLine } from "lucide-react";
 import { CopyButton } from "@/components/copy-button";
 import { DownloadButton } from "@/components/download-button";
 import { SaveStatus, useSaveStatus } from "@/components/save-status";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { UploadButton } from "@/components/upload-button";
 import { cn } from "@/lib/utils";
 
 import { memoFile } from "./lib/download";
@@ -32,6 +42,8 @@ export function MemoPad() {
   const [cursor, setCursor] = useState(0);
   // 좁은 화면에서 md일 때 편집과 프리뷰 중 무엇을 보는지. 넓은 화면은 둘 다 보인다.
   const [narrowView, setNarrowView] = useState<"edit" | "preview">("edit");
+  // 확인을 기다리는, 파일에서 읽은 글.
+  const [pendingImport, setPendingImport] = useState<MemoDoc | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -44,6 +56,16 @@ export function MemoPad() {
     setDoc(next);
     saveMemo(next);
     markSaved();
+  };
+
+  // 문서가 하나뿐이라 불러오면 쓰던 글이 바뀐다. 쓰던 글이 있으면 먼저 묻는다.
+  const handleImport = (text: string, fileName: string) => {
+    const next: MemoDoc = {
+      text,
+      format: fileName.toLowerCase().endsWith(".md") ? "md" : "txt",
+    };
+    if (doc.text.trim()) setPendingImport(next);
+    else update(next);
   };
 
   const syncCursor = () => {
@@ -94,8 +116,37 @@ export function MemoPad() {
           )}
           <CopyButton getText={() => doc.text} />
           <DownloadButton getFile={() => memoFile(doc.text, doc.format)} />
+          <UploadButton
+            accept=".txt,.md,text/plain,text/markdown"
+            label="파일 불러오기"
+            onText={handleImport}
+          />
         </div>
       </div>
+
+      <AlertDialog
+        open={pendingImport !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingImport(null);
+        }}
+      >
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>쓰던 글을 불러온 파일로 바꿀까요?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingImport) update(pendingImport);
+                setPendingImport(null);
+              }}
+            >
+              확인
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className={cn("grid min-h-0 flex-1", isMd && "md:grid-cols-2")}>
         <textarea
