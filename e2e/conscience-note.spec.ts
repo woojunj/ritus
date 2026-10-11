@@ -84,3 +84,31 @@ test("폰 너비에서 양심노트 한 장이 가로 스크롤 없이 세로로
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(360);
 });
+
+test("모두 내려받은 파일을 빈 목록에 불러오면 한 장이 그대로 돌아온다", async ({ page }) => {
+  await page.goto("/conscience");
+  await page.getByRole("button", { name: "새 양심노트 쓰기" }).click();
+  await page.getByLabel("사안", { exact: true }).fill("약속에 늦었다");
+  await page.getByLabel("성실", { exact: true }).fill("미리 나서지 않았다");
+  await page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" }).click();
+  await page.getByRole("button", { name: "완료" }).click();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "모두 파일로 저장" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^ritus-conscience-all-\d{8}\.txt$/);
+  const path = await download.path();
+
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await expect(page.getByRole("listitem")).toHaveCount(0);
+
+  await page.getByLabel("양심노트 불러오기 파일").setInputFiles(path);
+  await expect(page.getByRole("listitem")).toHaveCount(1);
+  await page.getByRole("listitem").getByRole("button").first().click();
+  await expect(page.getByLabel("사안", { exact: true })).toHaveValue("약속에 늦었다");
+  await expect(page.getByLabel("성실", { exact: true })).toHaveValue("미리 나서지 않았다");
+  await expect(
+    page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" })
+  ).toHaveAttribute("aria-pressed", "true");
+});

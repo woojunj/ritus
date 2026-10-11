@@ -126,6 +126,27 @@ describe("TodoList", () => {
     vi.unstubAllGlobals();
   });
 
+  test("내려받은 CSV를 불러오면 할 일과 완주 횟수가 더해지고, 이미 있는 제목은 건너뛴다", async () => {
+    render(<TodoList />);
+    const csv = '\uFEFF할 일,완주 횟수\n"읽기, ""메모""",0\n글쓰기,3';
+    const importCsv = () =>
+      fireEvent.change(screen.getAllByLabelText("할 일 불러오기 파일")[0], {
+        target: { files: [new File([csv], "todos.csv", { type: "text/csv" })] },
+      });
+
+    importCsv();
+    expect(
+      await screen.findByRole("link", { name: '"읽기, "메모"" 타이머 시작' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: '"글쓰기" 타이머 시작' })).toBeInTheDocument();
+    expect(screen.getByText("×3")).toBeInTheDocument();
+    expect(screen.getByText("할 일 2개")).toBeInTheDocument();
+
+    importCsv();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(screen.getByText("할 일 2개")).toBeInTheDocument();
+  });
+
   test("복사 버튼을 누르면 할 일과 완주 횟수가 CSV로 클립보드에 담긴다", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal("navigator", Object.assign(navigator, { clipboard: { writeText } }));

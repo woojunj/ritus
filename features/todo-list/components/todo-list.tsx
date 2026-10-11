@@ -17,8 +17,9 @@ import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
 import { DownloadButton } from "@/components/download-button";
 import { Input } from "@/components/ui/input";
+import { UploadButton } from "@/components/upload-button";
 
-import { todosFile, todosToCsv } from "../lib/csv";
+import { parseTodos, todosFile, todosToCsv } from "../lib/csv";
 import {
   saveItems,
   subscribeTodos,
@@ -61,6 +62,12 @@ export function TodoList({
     saveItems([item, ...items]);
     setDraft("");
     inputRef.current?.focus();
+  }
+
+  // 내려받은 CSV의 할 일을 목록 뒤에 더한다. 이미 같은 제목이 있으면 건너뛴다.
+  function handleImport(text: string) {
+    const added = parseTodos(text, items);
+    if (added.length > 0) saveItems([...items, ...added]);
   }
 
   function handleDelete(id: string) {
@@ -114,6 +121,12 @@ export function TodoList({
                 aria-hidden="true"
               />
               <p className="text-sm">할 일을 추가하면 여기에 나타납니다</p>
+              {/* 목록이 비어 있을 때도 내려받아 둔 파일로 시작할 수 있게 한다. */}
+              <UploadButton
+                accept=".csv,text/csv"
+                label="할 일 불러오기"
+                onText={handleImport}
+              />
             </div>
           )}
 
@@ -137,6 +150,12 @@ export function TodoList({
                   />
                   <DownloadButton
                     getFile={() => todosFile(items)}
+                    className="size-7 text-muted-foreground hover:text-foreground"
+                  />
+                  <UploadButton
+                    accept=".csv,text/csv"
+                    label="할 일 불러오기"
+                    onText={handleImport}
                     className="size-7 text-muted-foreground hover:text-foreground"
                   />
                   <Button
