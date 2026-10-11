@@ -1,24 +1,24 @@
 "use client";
 
+import type { ComponentType, SVGProps } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Hexagon,
   ListTodo,
   NotebookPen,
   Timer,
-  type LucideIcon,
 } from "lucide-react";
 
+import { ConscienceIcon } from "@/components/conscience-icon";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MuteToggle } from "@/features/focus-timer";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
+const NAV_ITEMS: { href: string; label: string; icon: ComponentType<SVGProps<SVGSVGElement>> }[] = [
   { href: "/", label: "타이머", icon: Timer },
   { href: "/memo", label: "메모장", icon: NotebookPen },
   { href: "/todos", label: "할 일 목록", icon: ListTodo },
-  { href: "/conscience", label: "양심노트", icon: Hexagon },
+  { href: "/conscience", label: "양심노트", icon: ConscienceIcon },
 ];
 
 // /timer는 /와 같은 타이머 화면이다.

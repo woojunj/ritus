@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { Hexagon, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 import { DownloadButton } from "@/components/download-button";
+import { ConscienceIcon } from "@/components/conscience-icon";
 import { Button } from "@/components/ui/button";
 import { UploadButton } from "@/components/upload-button";
 
@@ -97,7 +98,7 @@ export function ConscienceNote() {
 
             {notes.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-20 text-center text-muted-foreground">
-                <Hexagon className="h-10 w-10 opacity-20" aria-hidden="true" />
+                <ConscienceIcon className="h-10 w-10 opacity-20" aria-hidden="true" />
                 <p className="text-sm">양심노트를 쓰면 여기에 나타납니다</p>
               </div>
             ) : (
