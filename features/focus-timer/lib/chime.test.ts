@@ -30,6 +30,14 @@ function createFakeAudioContext() {
   return { Ctor, ctx, oscillator, gain };
 }
 
+function setVisibility(state: DocumentVisibilityState) {
+  Object.defineProperty(document, "visibilityState", {
+    configurable: true,
+    get: () => state,
+  });
+  document.dispatchEvent(new Event("visibilitychange"));
+}
+
 describe("playChime", () => {
   test("음소거가 아니면 오실레이터를 만들어 재생한다", () => {
     const { Ctor, oscillator } = createFakeAudioContext();
@@ -71,23 +79,41 @@ describe("playChime", () => {
     expect(resume).toHaveBeenCalledTimes(1);
   });
 
-  test("다른 곳에 다녀와 컨텍스트가 멈춰 있으면, 화면이 다시 보이거나 화면을 누를 때 깨운다", () => {
+  test("화면이 다시 보이면 멈춰 있는 컨텍스트를 깨워 본다", () => {
     const { Ctor, ctx } = createFakeAudioContext();
     const resume = vi.fn();
     Object.assign(ctx, { state: "running", resume });
     playChime("start", { muted: false, audioContextCtor: Ctor as never });
-    expect(resume).not.toHaveBeenCalled();
 
     Object.assign(ctx, { state: "interrupted" });
-    document.dispatchEvent(new Event("visibilitychange"));
+    setVisibility("visible");
     expect(resume).toHaveBeenCalledTimes(1);
+  });
 
-    document.dispatchEvent(new Event("pointerdown"));
-    expect(resume).toHaveBeenCalledTimes(2);
+  test("다른 곳에 다녀온 뒤 처음 누를 때 컨텍스트를 새로 열고, 이후 소리는 새 컨텍스트로 낸다", () => {
+    const { Ctor, ctx } = createFakeAudioContext();
+    Object.assign(ctx, { state: "running", resume: vi.fn() });
+    playChime("start", { muted: false, audioContextCtor: Ctor as never });
 
-    Object.assign(ctx, { state: "running" });
-    document.dispatchEvent(new Event("pointerdown"));
-    expect(resume).toHaveBeenCalledTimes(2);
+    setVisibility("hidden");
+    setVisibility("visible");
+    document.dispatchEvent(new Event("pointerup"));
+    expect(ctx.close).toHaveBeenCalledTimes(1);
+    expect(Ctor).toHaveBeenCalledTimes(2);
+
+    document.dispatchEvent(new Event("click"));
+    playChime("end", { muted: false, audioContextCtor: Ctor as never });
+    expect(Ctor).toHaveBeenCalledTimes(2);
+  });
+
+  test("다녀온 적 없이 잘 돌고 있으면 눌러도 컨텍스트를 새로 열지 않는다", () => {
+    const { Ctor, ctx } = createFakeAudioContext();
+    Object.assign(ctx, { state: "running", resume: vi.fn() });
+    playChime("start", { muted: false, audioContextCtor: Ctor as never });
+
+    document.dispatchEvent(new Event("touchend"));
+    expect(ctx.close).not.toHaveBeenCalled();
+    expect(Ctor).toHaveBeenCalledTimes(1);
   });
 
   test("AudioContext를 쓸 수 없으면 조용히 아무 일도 하지 않는다", () => {

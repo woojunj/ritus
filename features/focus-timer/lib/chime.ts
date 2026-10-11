@@ -31,10 +31,21 @@ const FREQUENCIES: Record<ChimeKind, number> = {
 // 그 컨텍스트로 낸다.
 let shared: { ctor: typeof AudioContext; ctx: AudioContext } | null = null;
 
+// 다른 앱이나 탭에 다녀오면 iOS는 컨텍스트를 멈춘 채 resume()을 받아 주지
+// 않거나, running이라면서 소리를 내지 않는다. 그런 컨텍스트는 버리고 다시 연다.
+let stale = false;
+
+function openContext(Ctor: typeof AudioContext): AudioContext {
+  const ctx = new Ctor();
+  shared = { ctor: Ctor, ctx };
+  stale = false;
+  watchForReturn();
+  return ctx;
+}
+
 function sharedContext(Ctor: typeof AudioContext): AudioContext {
   if (!shared || shared.ctor !== Ctor || shared.ctx.state === "closed") {
-    shared = { ctor: Ctor, ctx: new Ctor() };
-    watchForWake();
+    return openContext(Ctor);
   }
   return shared.ctx;
 }
@@ -44,18 +55,28 @@ function wake(): void {
   if (ctx && ctx.state !== "running" && ctx.state !== "closed") void ctx.resume?.();
 }
 
+// 사용자가 누른 순간이라 iOS가 새 컨텍스트에 소리를 허락한다.
+function renewOnGesture(): void {
+  if (!shared) return;
+  if (!stale && (shared.ctx.state as string) !== "interrupted") return;
+  void shared.ctx.close?.();
+  void openContext(shared.ctor).resume?.();
+}
+
 let watching = false;
 
-// 다른 앱이나 탭에 다녀오면 iOS가 컨텍스트를 멈춰 둔다. 화면이 다시 보일 때
-// 깨워 보고, 그래도 안 깨면 사용자가 화면을 누르는 순간에 다시 깨운다.
-function watchForWake(): void {
+// 화면이 다시 보일 때는 기존 컨텍스트를 깨워 보고, 다녀온 뒤 처음 누르는
+// 순간에는 컨텍스트를 새로 연다. 시작 버튼보다 먼저 받도록 capture로 듣는다.
+function watchForReturn(): void {
   if (watching || typeof document === "undefined") return;
   watching = true;
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") wake();
+    if (document.visibilityState === "hidden") stale = true;
+    else wake();
   });
-  document.addEventListener("pointerdown", wake);
-  document.addEventListener("keydown", wake);
+  for (const type of ["touchend", "pointerup", "click", "keydown"]) {
+    document.addEventListener(type, renewOnGesture, { capture: true });
+  }
 }
 
 export function playChime(kind: ChimeKind, options: ChimeOptions = {}): void {
