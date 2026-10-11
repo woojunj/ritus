@@ -22,7 +22,7 @@ const DEFAULT_MINUTES = 25;
 const DEFAULT_FIRST_INTERVAL_SECONDS = 20;
 const DEFAULT_SECOND_INTERVAL_SECONDS = 10;
 const TICK_MS = 100;
-const BASE_TITLE = "집중 세션 타이머";
+const BASE_TITLE = "집중";
 
 function secondsRemaining(target: number): number {
   return Math.max(0, Math.ceil((target - Date.now()) / 1000));
