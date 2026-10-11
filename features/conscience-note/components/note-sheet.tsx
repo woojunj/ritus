@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 import { Check, Trash2 } from "lucide-react";
 
+import { CopyButton } from "@/components/copy-button";
 import { SaveStatus, useSaveStatus } from "@/components/save-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
+import { noteToText } from "../lib/copy-text";
 import { LEVELS, VIRTUES, type VirtueKey } from "../lib/form";
 import { noteLevels, type ConscienceNoteItem } from "../lib/storage";
 import { DeleteNoteDialog } from "./delete-note-dialog";
@@ -84,6 +86,10 @@ export function NoteSheet({
           <SaveStatus saving={saving} />
         </div>
         <div className="flex items-center gap-1">
+          <CopyButton
+            getText={() => noteToText(note)}
+            className="text-muted-foreground"
+          />
           <Button
             type="button"
             variant="ghost"

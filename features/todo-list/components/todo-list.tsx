@@ -14,8 +14,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/copy-button";
 import { Input } from "@/components/ui/input";
 
+import { todosToCsv } from "../lib/csv";
 import {
   saveItems,
   subscribeTodos,
@@ -128,6 +130,10 @@ export function TodoList({
                       카드를 터치하면 타이머 시작
                     </span>
                   )}
+                  <CopyButton
+                    getText={() => todosToCsv(items)}
+                    className="size-7 text-muted-foreground hover:text-foreground"
+                  />
                   <Button
                     variant="ghost"
                     size="sm"

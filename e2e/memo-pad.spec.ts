@@ -38,3 +38,14 @@ test("저장 버튼은 선택한 형식의 파일을 내려받는다", async ({ 
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^ritus-memo-\d{8}\.md$/);
 });
+
+test("복사 버튼을 누르면 메모가 클립보드에 담긴다", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/memo");
+
+  await page.getByLabel("메모 본문").fill("복사할 글");
+  await page.getByRole("button", { name: "클립보드로 복사" }).click();
+
+  await expect(page.getByRole("button", { name: "복사됨" })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("복사할 글");
+});

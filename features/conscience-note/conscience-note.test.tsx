@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ConscienceNote } from "./conscience-note";
 import { COPYRIGHT_NOTICE } from "./lib/form";
@@ -192,6 +192,40 @@ describe("양심노트 한 장", () => {
       })
     ).toHaveAttribute("aria-pressed", "true");
     expect(chartDots()).toHaveLength(1);
+  });
+
+  test("복사 버튼을 누르면 한 장이 양식 순서대로 클립보드에 담긴다", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", Object.assign(navigator, { clipboard: { writeText } }));
+
+    render(<ConscienceNote />);
+    startNewNote();
+    fireEvent.change(screen.getByLabelText("날짜"), { target: { value: "2026-10-01" } });
+    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "약속에 늦었다" } });
+    fireEvent.change(screen.getByLabelText("성실"), { target: { value: "미리 나서지 않았다" } });
+    fireEvent.change(screen.getByLabelText("최종 결론"), { target: { value: "먼저 사과한다" } });
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "성실 단계" })).getByRole("button", {
+        name: "찜자",
+      })
+    );
+    fireEvent.click(screen.getByRole("button", { name: "클립보드로 복사" }));
+
+    expect(writeText).toHaveBeenCalledWith(
+      [
+        "양심노트 2026년 10월 1일",
+        "[사안]\n약속에 늦었다",
+        "[몰입]",
+        "[사랑]",
+        "[정의]",
+        "[예절]",
+        "[성실] 찜자\n미리 나서지 않았다",
+        "[지혜]",
+        "[최종 결론]\n먼저 사과한다",
+      ].join("\n\n")
+    );
+    expect(await screen.findByRole("button", { name: "복사됨" })).toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 
   test("삭제는 먼저 묻고, 확인하면 그 한 장만 목록에서 사라진다", () => {

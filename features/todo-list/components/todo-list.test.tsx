@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { TodoList } from "./todo-list";
 import { loadItems, incrementCompletionCount } from "../lib/storage";
@@ -91,5 +91,28 @@ describe("TodoList", () => {
     });
 
     expect(screen.getByText("×1")).toBeInTheDocument();
+  });
+
+  test("복사 버튼을 누르면 할 일과 완주 횟수가 CSV로 클립보드에 담긴다", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", Object.assign(navigator, { clipboard: { writeText } }));
+
+    render(<TodoList />);
+    const input = screen.getByLabelText("새 할 일");
+    fireEvent.change(input, { target: { value: "글쓰기" } });
+    fireEvent.click(screen.getByRole("button", { name: "할 일 추가" }));
+    fireEvent.change(input, { target: { value: '읽기, "메모"' } });
+    fireEvent.click(screen.getByRole("button", { name: "할 일 추가" }));
+    act(() => {
+      incrementCompletionCount(loadItems().find((item) => item.title === "글쓰기")!.id);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "클립보드로 복사" }));
+
+    expect(writeText).toHaveBeenCalledWith(
+      '할 일,완주 횟수\n"읽기, ""메모""",0\n글쓰기,1'
+    );
+    expect(await screen.findByRole("button", { name: "복사됨" })).toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 });
