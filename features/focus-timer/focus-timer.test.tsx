@@ -143,7 +143,7 @@ describe("세션 진행", () => {
     fireEvent.click(screen.getByRole("button", { name: "그만두기" }));
 
     expect(screen.getByRole("button", { name: "시작" })).toBeInTheDocument();
-    expect(screen.queryByText(/고생했다|수고했다|잘 했다/)).toBeNull();
+    expect(screen.queryByText(/잘 마치셨습니다|애쓰셨습니다|오늘도 한 걸음|충분합니다|깊이 머문 시간|잠시 쉬어 가세요|이제 쉬셔도 좋습니다|고요/)).toBeNull();
   });
 });
 
@@ -167,7 +167,7 @@ describe("세션 종료", () => {
     );
     expect(endScreen).toHaveAttribute("data-blinking", "true");
     expect(
-      within(endScreen).getByText(/고생했다|수고했다|잘 했다|오늘도 해냈다|충분히 잘하고 있다/)
+      within(endScreen).getByText(/잘 마치셨습니다|애쓰셨습니다|오늘도 한 걸음|충분합니다|깊이 머문 시간|잠시 쉬어 가세요|이제 쉬셔도 좋습니다|고요/)
     ).toBeInTheDocument();
   });
 
