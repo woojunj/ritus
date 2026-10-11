@@ -7,7 +7,7 @@ function renderScreen(overrides: Partial<Parameters<typeof EndScreen>[0]> = {}) 
   return render(
     <EndScreen
       title="결제 모듈 리팩터링"
-      encouragement="오늘도 해냈다"
+      encouragement="잘 마치셨습니다"
       blinking={false}
       onDismissBlink={() => {}}
       onRestart={() => {}}

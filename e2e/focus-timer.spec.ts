@@ -39,7 +39,7 @@ test("설정부터 종료·재시작까지 세션 흐름이 이어진다", async
   const endScreen = page.getByTestId("end-screen");
   await expect(endScreen).toHaveAttribute("data-blinking", "true");
   await expect(
-    endScreen.getByText(/고생했다|수고했다|잘 했다|오늘도 해냈다|충분히 잘하고 있다/)
+    endScreen.getByText(/잘 마치셨습니다|애쓰셨습니다|오늘도 한 걸음|충분합니다|깊이 머문 시간|잠시 쉬어 가세요|이제 쉬셔도 좋습니다|고요/)
   ).toBeVisible();
 
   await endScreen.click({ position: { x: 5, y: 5 } });
@@ -63,7 +63,7 @@ test("세션 도중 그만두면 메시지 없이 처음 화면으로 돌아간�
 
   await expect(page.getByRole("button", { name: "시작" })).toBeVisible();
   await expect(
-    page.getByText(/고생했다|수고했다|잘 했다|오늘도 해냈다|충분히 잘하고 있다/)
+    page.getByText(/잘 마치셨습니다|애쓰셨습니다|오늘도 한 걸음|충분합니다|깊이 머문 시간|잠시 쉬어 가세요|이제 쉬셔도 좋습니다|고요/)
   ).toHaveCount(0);
 });
 
