@@ -83,6 +83,7 @@ test("폰 너비에서 네 화면의 헤더가 가로 스크롤 없이 한 줄�
     await expect(header.getByRole("link", { name: "타이머" })).toBeInViewport();
     await expect(header.getByRole("button", { name: "소리 끄기" })).toBeInViewport();
     await expect(header.getByRole("button", { name: "전체 백업" })).toBeInViewport();
+    await expect(header.getByRole("link", { name: "도움말" })).toBeInViewport();
     expect((await header.boundingBox())?.height).toBeLessThan(60);
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth

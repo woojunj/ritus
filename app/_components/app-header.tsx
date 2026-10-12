@@ -4,6 +4,7 @@ import type { ComponentType, SVGProps } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  CircleQuestionMark,
   ListTodo,
   NotebookPen,
   Timer,
@@ -29,6 +30,10 @@ function isCurrent(href: string, pathname: string): boolean {
   return pathname === href;
 }
 
+const ICON_LINK_CLASS =
+  "inline-flex size-9 items-center justify-center rounded-md transition-colors";
+const CURRENT_CLASS = "bg-secondary text-foreground";
+
 // 네 화면이 함께 쓰는 헤더. 같은 자리에 같은 순서로 네 화면의 아이콘을 두고
 // 지금 화면을 강조한다.
 export function AppHeader() {
@@ -36,7 +41,8 @@ export function AppHeader() {
 
   return (
     <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-b px-3 py-2 sm:px-4">
-      <span className="font-heading text-lg font-semibold tracking-tight">
+      {/* 폰 너비에서는 아이콘이 한 줄에 들어오도록 이름을 감춘다. */}
+      <span className="hidden font-heading text-lg font-semibold tracking-tight sm:inline">
         ritus
       </span>
       <nav aria-label="화면 이동" className="flex items-center gap-1">
@@ -49,9 +55,9 @@ export function AppHeader() {
               aria-label={label}
               aria-current={current ? "page" : undefined}
               className={cn(
-                "inline-flex size-9 items-center justify-center rounded-md transition-colors",
+                ICON_LINK_CLASS,
                 current
-                  ? "bg-secondary text-foreground"
+                  ? CURRENT_CLASS
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
@@ -61,6 +67,17 @@ export function AppHeader() {
         })}
       </nav>
       <div className="flex items-center justify-end gap-1">
+        <Link
+          href="/help"
+          aria-label="도움말"
+          aria-current={pathname === "/help" ? "page" : undefined}
+          className={cn(
+            ICON_LINK_CLASS,
+            pathname === "/help" ? CURRENT_CLASS : "hover:bg-muted"
+          )}
+        >
+          <CircleQuestionMark className="h-4 w-4" aria-hidden="true" />
+        </Link>
         <BackupButton />
         <ThemeToggle />
         <MuteToggle />
