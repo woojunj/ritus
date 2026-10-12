@@ -37,8 +37,11 @@ export function subscribeTodos(callback: () => void): () => void {
   };
 }
 
+// useSyncExternalStore는 스냅샷 참조가 바뀌면 다시 그리므로, 빈 목록은 늘 같은 배열을 돌려준다.
+const EMPTY: TodoItem[] = [];
+
 export function getTodosSnapshot(): TodoItem[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") return EMPTY;
   try {
     const raw = localStorage.getItem(STORAGE_KEY) ?? "";
     if (raw !== cachedRaw) {
@@ -47,13 +50,12 @@ export function getTodosSnapshot(): TodoItem[] {
     }
     return cachedParsed;
   } catch {
-    return [];
+    return EMPTY;
   }
 }
 
-const SERVER_EMPTY: TodoItem[] = [];
 export function getTodosServerSnapshot(): TodoItem[] {
-  return SERVER_EMPTY;
+  return EMPTY;
 }
 
 export function loadItems(): TodoItem[] {

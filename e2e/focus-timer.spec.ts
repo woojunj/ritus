@@ -67,16 +67,18 @@ test("세션 도중 그만두면 메시지 없이 처음 화면으로 돌아간�
   ).toHaveCount(0);
 });
 
-test("두 구간 반복이 총 시간을 넘겨 진행 중인 구간을 채우고 끝난다", async ({
+test("두 구간 반복이 총 시간을 넘겨 진행 중인 사이클을 채우고 끝난다", async ({
   page,
 }) => {
   await page.clock.install();
   await page.goto("/");
 
   await page.getByLabel("시간(분)").fill("1");
-  await page.getByRole("button", { name: "구간 반복" }).click();
-  await page.getByLabel("첫 구간(초)").fill("30");
-  await page.getByLabel("두 번째 구간(초)").fill("20");
+  await page.getByRole("button", { name: "번갈아 반복" }).click();
+  // 구간 설정은 좁은 화면용과 넓은 화면용 두 자리에 그려지고, 데스크톱 폭에서는 넓은 쪽만 보인다.
+  const fields = page.getByTestId("interval-fields-wide");
+  await fields.getByLabel("첫 구간(초)").fill("30");
+  await fields.getByLabel("두 번째 구간(초)").fill("20");
   await page.getByRole("button", { name: "시작" }).click();
 
   const indicator = page.getByTestId("slice-indicator");
@@ -86,12 +88,17 @@ test("두 구간 반복이 총 시간을 넘겨 진행 중인 구간을 채우�
   await page.clock.fastForward(30_000);
   await expect(indicator).toContainText("구간 2");
 
-  // 총 시간(60초)에 닿아도 진행 중인 첫 구간(50~80초)을 채우느라 끝나지 않는다.
+  // 총 시간(60초)에 닿아도 진행 중인 사이클(50~100초)을 채우느라 끝나지 않는다.
   await page.clock.fastForward(30_000);
   await expect(page.getByTestId("end-screen")).toHaveCount(0);
   await expect(indicator).toContainText("구간 1");
 
-  // 80초에 실제로 끝난다.
+  // 첫 구간이 끝나도(80초) 두 번째 구간까지 마저 돈다.
+  await page.clock.fastForward(20_000);
+  await expect(page.getByTestId("end-screen")).toHaveCount(0);
+  await expect(indicator).toContainText("구간 2");
+
+  // 사이클을 다 채운 100초에 실제로 끝난다.
   await page.clock.fastForward(20_000);
   await expect(page.getByTestId("end-screen")).toBeVisible();
 });
