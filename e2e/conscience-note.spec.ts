@@ -83,6 +83,14 @@ test("폰 너비에서 양심노트 한 장이 가로 스크롤 없이 세로로
   const box = await chart.boundingBox();
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(360);
+
+  // 목록 위의 아이콘 다섯 개도 한 줄에 들어온다.
+  await page.getByRole("button", { name: "완료" }).click();
+  const helper = await page.getByRole("link", { name: "양심성찰 도우미 열기" }).boundingBox();
+  const create = await page.getByRole("button", { name: "새 양심노트 쓰기" }).boundingBox();
+  expect(helper!.y).toBe(create!.y);
+  expect(create!.x + create!.width).toBeLessThanOrEqual(360);
+  await expect(page.getByRole("button", { name: "모두 파일로 저장" })).toBeVisible();
 });
 
 test("복사한 한 장과 다른 곳에서 쓴 글을 붙여넣으면 양식에 채워진다", async ({
@@ -128,6 +136,48 @@ test("복사한 한 장과 다른 곳에서 쓴 글을 붙여넣으면 양식에
   await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
   await expect(page.getByText("이미 같은 양심노트가 있습니다")).toBeVisible();
   await expect(page.getByRole("listitem")).toHaveCount(2);
+});
+
+test("한 장에서 붙여넣으면 빈 칸은 채우고 쓴 글 아래에 이어 붙인다", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/conscience");
+  await page.getByRole("button", { name: "새 양심노트 쓰기" }).click();
+  await page.getByLabel("사안", { exact: true }).fill("회의에서 말을 끊었다");
+  await page.getByRole("group", { name: "사랑 단계" }).getByRole("button", { name: "자명" }).click();
+
+  await page.evaluate(() =>
+    navigator.clipboard.writeText(
+      "상대가 말을 멈췄다\n\n사랑 (찜찜)\n끝까지 듣지 않았다\n결론: 먼저 사과한다"
+    )
+  );
+  await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
+
+  await expect(page.getByLabel("사안", { exact: true })).toHaveValue(
+    "회의에서 말을 끊었다\n\n상대가 말을 멈췄다"
+  );
+  await expect(page.getByLabel("사랑", { exact: true })).toHaveValue("끝까지 듣지 않았다");
+  await expect(
+    page.getByRole("group", { name: "사랑 단계" }).getByRole("button", { name: "자명" })
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel("최종 결론")).toHaveValue("먼저 사과한다");
+
+  // 여러 장이 든 글은 한 장에 섞지 않고 목록에서 붙여넣으라고 알린다.
+  const twoNotes =
+    "양심노트 2026년 10월 1일\n\n[사안]\n약속에 늦었다\n\n\n양심노트 2026년 10월 2일\n\n[사안]\n화를 냈다";
+  await page.evaluate((text) => navigator.clipboard.writeText(text), twoNotes);
+  await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
+  await expect(page.getByText("여러 장은 목록에서 붙여넣어 주세요")).toBeVisible();
+  await expect(page.getByLabel("사안", { exact: true })).toHaveValue(
+    "회의에서 말을 끊었다\n\n상대가 말을 멈췄다"
+  );
+
+  // 새 한 장이 생기지 않고 열려 있던 한 장에만 더해진다.
+  await page.getByRole("button", { name: "완료" }).click();
+  await expect(page.getByRole("listitem")).toHaveCount(1);
+
+  // 목록에서는 같은 글이 장마다 새 한 장이 된다.
+  await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
+  await expect(page.getByRole("listitem")).toHaveCount(3);
 });
 
 test("브라우저가 클립보드 읽기를 막으면 직접 붙여넣는 창으로 이어 간다", async ({ page }) => {

@@ -283,8 +283,12 @@ describe("양심노트 한 장", () => {
     expect(chartDots()).toHaveLength(1);
   });
 
-  test("양심성찰 도우미 링크가 새 탭으로 열린다", () => {
+  test("양심성찰 도우미 링크가 목록과 한 장 모두에서 새 탭으로 열린다", () => {
     render(<ConscienceNote />);
+    expect(screen.getByRole("link", { name: "양심성찰 도우미 열기" })).toHaveAttribute(
+      "href",
+      HELPER_URL
+    );
     startNewNote();
 
     const link = screen.getByRole("link", { name: "양심성찰 도우미 열기" });

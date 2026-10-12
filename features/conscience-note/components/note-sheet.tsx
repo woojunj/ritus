@@ -1,26 +1,31 @@
 "use client";
 
 import { useEffect, useRef, useState, type ComponentProps } from "react";
-import { Check, Sparkles, Trash2 } from "lucide-react";
+import { Check, ClipboardPaste, Trash2 } from "lucide-react";
 
 import { CopyButton } from "@/components/copy-button";
 import { DownloadButton } from "@/components/download-button";
 import { SaveStatus, useSaveStatus } from "@/components/save-status";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 import { noteFile, noteToText } from "../lib/copy-text";
-import { HELPER_URL, LEVELS, VIRTUES, type VirtueKey } from "../lib/form";
+import { LEVELS, VIRTUES, type VirtueKey } from "../lib/form";
 import { noteLevels, type ConscienceNoteItem } from "../lib/storage";
 import { DeleteNoteDialog } from "./delete-note-dialog";
+import { HelperLink } from "./helper-link";
 import { RadarChart } from "./radar-chart";
 
 interface NoteSheetProps {
   note: ConscienceNoteItem;
   /** 막 만든 한 장이면 사안 칸에 바로 입력할 수 있게 한다. */
   focusMatter?: boolean;
+  /** 붙여넣을 것이 없을 때처럼 잠깐 알릴 말. */
+  notice?: string | null;
   onChange: (note: ConscienceNoteItem) => void;
+  /** 클립보드의 글을 이 한 장에 더한다. */
+  onPaste: () => void;
   onBack: () => void;
   onDelete: () => void;
 }
@@ -44,7 +49,9 @@ const NAME_CLASS = "font-heading text-sm font-semibold sm:pt-1.5";
 export function NoteSheet({
   note,
   focusMatter = false,
+  notice = null,
   onChange: onNoteChange,
+  onPaste,
   onBack,
   onDelete,
 }: NoteSheetProps) {
@@ -87,23 +94,21 @@ export function NoteSheet({
           <SaveStatus saving={saving} />
         </div>
         <div className="flex items-center gap-1">
-          {/* 쓰다가 막힐 때 물어볼 수 있는 바깥 도우미. 쓰던 한 장이 남도록 새 탭으로 연다. */}
-          <a
-            href={HELPER_URL}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="양심성찰 도우미 열기"
-            className={cn(
-              buttonVariants({ variant: "ghost", size: "icon" }),
-              "text-muted-foreground"
-            )}
-          >
-            <Sparkles aria-hidden="true" />
-          </a>
+          <HelperLink />
           <CopyButton
             getText={() => noteToText(note)}
             className="text-muted-foreground"
           />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground"
+            onClick={onPaste}
+          >
+            <ClipboardPaste aria-hidden="true" />
+            <span className="sr-only">클립보드에서 붙여넣기</span>
+          </Button>
           <DownloadButton
             getFile={() => noteFile(note)}
             className="text-muted-foreground"
@@ -125,6 +130,12 @@ export function NoteSheet({
           </Button>
         </div>
       </div>
+
+      {notice && (
+        <p role="status" className="pb-3 text-center text-sm text-muted-foreground">
+          {notice}
+        </p>
+      )}
 
       <section className={ROW_CLASS}>
         <label htmlFor="conscience-matter" className={NAME_CLASS}>
