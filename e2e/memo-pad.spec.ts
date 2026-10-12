@@ -66,3 +66,28 @@ test("파일을 불러오면 쓰던 글을 바꿀지 묻고, 확인하면 바뀐
   await expect(page.getByLabel("메모 본문")).toHaveValue("# 불러온 글");
   await expect(page.getByRole("tab", { name: "md" })).toHaveAttribute("aria-selected", "true");
 });
+
+test("저장된 글이 나타나기 전에 쓴 글이 저장된 글과 섞이지 않는다", async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("ritus:memo")) {
+      localStorage.setItem("ritus:memo", JSON.stringify({ text: "저장된 글", format: "txt" }));
+    }
+  });
+  // 스크립트를 늦춰 저장된 글이 아직 들어오지 않은 빈 화면을 만든다.
+  await page.route("**/_next/static/**", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await route.continue();
+  });
+  await page.goto("/memo", { waitUntil: "commit" });
+  const body = page.getByLabel("메모 본문");
+
+  await expect(body).toHaveValue("");
+  await expect(body).not.toBeEditable();
+  await body.click();
+  await page.keyboard.type("abc");
+
+  await expect(body).toBeEditable();
+  await expect(body).toHaveValue("저장된 글");
+  await body.fill("새 글");
+  await expect(body).toHaveValue("새 글");
+});

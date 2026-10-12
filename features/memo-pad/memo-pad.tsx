@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { UploadButton } from "@/components/upload-button";
+import { useMounted } from "@/lib/use-mounted";
 import { cn } from "@/lib/utils";
 
 import { memoFile } from "./lib/download";
@@ -50,6 +51,9 @@ export function MemoPad() {
     getMemoSnapshot,
     getMemoServerSnapshot
   );
+  // 저장된 글이 화면에 들어오기 전에는 입력을 받지 않는다. 그 사이에 쓴 글이
+  // 뒤늦게 나타난 저장된 글과 섞이기 때문이다.
+  const loaded = useMounted();
   const [cursor, setCursor] = useState(0);
   // 좁은 화면에서 md일 때 편집과 프리뷰 중 무엇을 보는지. 넓은 화면은 둘 다 보인다.
   const [narrowView, setNarrowView] = useState<"edit" | "preview">("edit");
@@ -163,6 +167,7 @@ export function MemoPad() {
           ref={textareaRef}
           aria-label="메모 본문"
           value={doc.text}
+          readOnly={!loaded}
           onChange={(e) => {
             update({ ...doc, text: e.target.value });
             setCursor(e.target.selectionStart);
