@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import ReactMarkdown from "react-markdown";
 import { Eye, PencilLine } from "lucide-react";
 
@@ -22,7 +22,14 @@ import { cn } from "@/lib/utils";
 
 import { memoFile } from "./lib/download";
 import { countChars, cursorPosition, lineCount } from "./lib/stats";
-import { loadMemo, saveMemo, type MemoDoc, type MemoFormat } from "./lib/storage";
+import {
+  getMemoServerSnapshot,
+  getMemoSnapshot,
+  saveMemo,
+  subscribeMemo,
+  type MemoDoc,
+  type MemoFormat,
+} from "./lib/storage";
 
 const FORMATS: MemoFormat[] = ["txt", "md"];
 
@@ -38,7 +45,11 @@ const PREVIEW_CLASS = cn(
 );
 
 export function MemoPad() {
-  const [doc, setDoc] = useState<MemoDoc>(loadMemo);
+  const doc = useSyncExternalStore(
+    subscribeMemo,
+    getMemoSnapshot,
+    getMemoServerSnapshot
+  );
   const [cursor, setCursor] = useState(0);
   // 좁은 화면에서 md일 때 편집과 프리뷰 중 무엇을 보는지. 넓은 화면은 둘 다 보인다.
   const [narrowView, setNarrowView] = useState<"edit" | "preview">("edit");
@@ -53,7 +64,6 @@ export function MemoPad() {
   const { saving, markSaved } = useSaveStatus();
 
   const update = (next: MemoDoc) => {
-    setDoc(next);
     saveMemo(next);
     markSaved();
   };
