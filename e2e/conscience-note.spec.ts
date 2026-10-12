@@ -85,6 +85,74 @@ test("폰 너비에서 양심노트 한 장이 가로 스크롤 없이 세로로
   expect(box!.x + box!.width).toBeLessThanOrEqual(360);
 });
 
+test("복사한 한 장과 다른 곳에서 쓴 글을 붙여넣으면 양식에 채워진다", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/conscience");
+  await page.getByRole("button", { name: "새 양심노트 쓰기" }).click();
+  await page.getByLabel("사안", { exact: true }).fill("약속에 늦었다");
+  await page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" }).click();
+  await page.getByRole("button", { name: "클립보드로 복사" }).click();
+  await expect(page.getByRole("button", { name: "복사됨" })).toBeVisible();
+  await page.getByRole("button", { name: "양심노트 삭제" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "확인" }).click();
+  await expect(page.getByRole("listitem")).toHaveCount(0);
+
+  // 이 앱에서 복사한 한 장은 그대로 돌아와 바로 열린다.
+  await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
+  await expect(page.getByLabel("사안", { exact: true })).toHaveValue("약속에 늦었다");
+  await expect(
+    page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" })
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "완료" }).click();
+
+  // 다른 메모장에서 쓴 글도 덕목 이름을 따라 나눠 담긴다.
+  await page.evaluate(() =>
+    navigator.clipboard.writeText(
+      "회의에서 말을 끊었다\n\n사랑 (찜찜)\n끝까지 듣지 않았다\n결론: 먼저 사과한다"
+    )
+  );
+  await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
+  await expect(page.getByLabel("사안", { exact: true })).toHaveValue("회의에서 말을 끊었다");
+  await expect(page.getByLabel("사랑", { exact: true })).toHaveValue("끝까지 듣지 않았다");
+  await expect(
+    page.getByRole("group", { name: "사랑 단계" }).getByRole("button", { name: "찜찜" })
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel("최종 결론")).toHaveValue("먼저 사과한다");
+  await page.getByRole("button", { name: "완료" }).click();
+  await expect(page.getByRole("listitem")).toHaveCount(2);
+
+  // 같은 글을 다시 붙여넣으면 더하지 않고 까닭을 알린다.
+  await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
+  await expect(page.getByText("이미 같은 양심노트가 있습니다")).toBeVisible();
+  await expect(page.getByRole("listitem")).toHaveCount(2);
+});
+
+test("브라우저가 클립보드 읽기를 막으면 직접 붙여넣는 창으로 이어 간다", async ({ page }) => {
+  await page.addInitScript(() => {
+    navigator.clipboard.readText = () =>
+      Promise.reject(new DOMException("denied", "NotAllowedError"));
+  });
+  await page.goto("/conscience");
+
+  await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog).toContainText("브라우저가 클립보드 읽기를 허용하지 않아");
+  await expect(dialog.getByRole("button", { name: "양식에 채우기" })).toBeDisabled();
+
+  await dialog.getByLabel("붙여넣을 글").fill("약속에 늦었다\n[성실] 찜자\n미리 나서지 않았다");
+  await dialog.getByRole("button", { name: "양식에 채우기" }).click();
+
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByLabel("사안", { exact: true })).toHaveValue("약속에 늦었다");
+  await expect(page.getByLabel("성실", { exact: true })).toHaveValue("미리 나서지 않았다");
+  await expect(
+    page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" })
+  ).toHaveAttribute("aria-pressed", "true");
+});
+
 test("모두 내려받은 파일을 빈 목록에 불러오면 한 장이 그대로 돌아온다", async ({ page }) => {
   await page.goto("/conscience");
   await page.getByRole("button", { name: "새 양심노트 쓰기" }).click();

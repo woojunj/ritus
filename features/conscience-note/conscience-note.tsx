@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { ClipboardPaste, Plus, Trash2 } from "lucide-react";
 
 import { DownloadButton } from "@/components/download-button";
 import { ConscienceIcon } from "@/components/conscience-icon";
@@ -10,8 +10,14 @@ import { UploadButton } from "@/components/upload-button";
 
 import { DeleteNoteDialog } from "./components/delete-note-dialog";
 import { NoteSheet } from "./components/note-sheet";
+import { PasteDialog } from "./components/paste-dialog";
 import { RadarChart } from "./components/radar-chart";
-import { allNotesFile, newNotesOnly, parseNotes } from "./lib/copy-text";
+import {
+  allNotesFile,
+  newNotesOnly,
+  parseNotes,
+  parsePastedNotes,
+} from "./lib/copy-text";
 import { COPYRIGHT_NOTICE } from "./lib/form";
 import {
   createNote,
@@ -25,6 +31,8 @@ import {
   type ConscienceNoteItem,
 } from "./lib/storage";
 
+const NOTICE_MS = 3000;
+
 // 양심노트 화면. 사안마다 한 장씩 쌓이는 목록과, 그중 한 장을 쓰는 화면을 오간다.
 export function ConscienceNote() {
   const notes = useSyncExternalStore(
@@ -35,6 +43,16 @@ export function ConscienceNote() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [justCreated, setJustCreated] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pasteDialogOpen, setPasteDialogOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    },
+    []
+  );
   const openNote = notes.find((note) => note.id === openId);
 
   function handleCreate() {
@@ -52,6 +70,44 @@ export function ConscienceNote() {
   function handleImport(text: string) {
     const added = newNotesOnly(parseNotes(text), notes);
     if (added.length > 0) saveNotes([...added, ...notes]);
+  }
+
+  // 더해진 것이 없을 때 고장으로 보이지 않도록 까닭을 잠깐 알린다.
+  function showNotice(message: string) {
+    setNotice(message);
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setNotice(null), NOTICE_MS);
+  }
+
+  // 붙여넣은 글을 한 장으로 만든다. 한 장만 들어오면 채워진 모습을 바로 보여 준다.
+  function addPasted(text: string) {
+    const parsed = parsePastedNotes(text);
+    if (parsed.length === 0) {
+      showNotice("붙여넣을 글이 없습니다");
+      return;
+    }
+    const added = newNotesOnly(parsed, notes);
+    if (added.length === 0) {
+      showNotice("이미 같은 양심노트가 있습니다");
+      return;
+    }
+    saveNotes([...added, ...notes]);
+    if (added.length === 1) {
+      setOpenId(added[0].id);
+      setJustCreated(false);
+    }
+  }
+
+  async function handlePaste() {
+    let text: string;
+    try {
+      text = await navigator.clipboard.readText();
+    } catch {
+      // 클립보드를 읽을 수 없거나 허락받지 못하면 직접 붙여넣는 창으로 이어 간다.
+      setPasteDialogOpen(true);
+      return;
+    }
+    addPasted(text);
   }
 
   function handleDelete(id: string) {
@@ -76,6 +132,16 @@ export function ConscienceNote() {
             <div className="flex items-center justify-between">
               <h1 className="font-heading text-lg font-semibold">양심노트</h1>
               <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground"
+                  onClick={handlePaste}
+                >
+                  <ClipboardPaste aria-hidden="true" />
+                  <span className="sr-only">클립보드에서 붙여넣기</span>
+                </Button>
                 <UploadButton
                   accept=".txt,text/plain"
                   label="양심노트 불러오기"
@@ -95,6 +161,12 @@ export function ConscienceNote() {
                 </Button>
               </div>
             </div>
+
+            {notice && (
+              <p role="status" className="-mt-3 text-center text-sm text-muted-foreground">
+                {notice}
+              </p>
+            )}
 
             {notes.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-20 text-center text-muted-foreground">
@@ -166,6 +238,11 @@ export function ConscienceNote() {
         onConfirm={() => {
           if (deletingId) handleDelete(deletingId);
         }}
+      />
+      <PasteDialog
+        open={pasteDialogOpen}
+        onOpenChange={setPasteDialogOpen}
+        onSubmit={addPasted}
       />
       <p className="border-t px-4 py-2 text-center text-xs text-muted-foreground">
         {COPYRIGHT_NOTICE}
