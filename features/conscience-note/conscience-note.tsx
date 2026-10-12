@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { UploadButton } from "@/components/upload-button";
 
 import { DeleteNoteDialog } from "./components/delete-note-dialog";
+import { HelperLink } from "./components/helper-link";
 import { NoteSheet } from "./components/note-sheet";
 import { PasteDialog } from "./components/paste-dialog";
 import { RadarChart } from "./components/radar-chart";
@@ -147,6 +148,7 @@ export function ConscienceNote() {
             <div className="flex items-center justify-between">
               <h1 className="font-heading text-lg font-semibold">양심노트</h1>
               <div className="flex items-center gap-1">
+                <HelperLink />
                 <Button
                   type="button"
                   variant="ghost"

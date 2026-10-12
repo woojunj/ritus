@@ -83,6 +83,14 @@ test("폰 너비에서 양심노트 한 장이 가로 스크롤 없이 세로로
   const box = await chart.boundingBox();
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(360);
+
+  // 목록 위의 아이콘 다섯 개도 한 줄에 들어온다.
+  await page.getByRole("button", { name: "완료" }).click();
+  const helper = await page.getByRole("link", { name: "양심성찰 도우미 열기" }).boundingBox();
+  const create = await page.getByRole("button", { name: "새 양심노트 쓰기" }).boundingBox();
+  expect(helper!.y).toBe(create!.y);
+  expect(create!.x + create!.width).toBeLessThanOrEqual(360);
+  await expect(page.getByRole("button", { name: "모두 파일로 저장" })).toBeVisible();
 });
 
 test("복사한 한 장과 다른 곳에서 쓴 글을 붙여넣으면 양식에 채워진다", async ({

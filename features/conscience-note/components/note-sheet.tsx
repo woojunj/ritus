@@ -1,19 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState, type ComponentProps } from "react";
-import { Check, ClipboardPaste, Sparkles, Trash2 } from "lucide-react";
+import { Check, ClipboardPaste, Trash2 } from "lucide-react";
 
 import { CopyButton } from "@/components/copy-button";
 import { DownloadButton } from "@/components/download-button";
 import { SaveStatus, useSaveStatus } from "@/components/save-status";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 import { noteFile, noteToText } from "../lib/copy-text";
-import { HELPER_URL, LEVELS, VIRTUES, type VirtueKey } from "../lib/form";
+import { LEVELS, VIRTUES, type VirtueKey } from "../lib/form";
 import { noteLevels, type ConscienceNoteItem } from "../lib/storage";
 import { DeleteNoteDialog } from "./delete-note-dialog";
+import { HelperLink } from "./helper-link";
 import { RadarChart } from "./radar-chart";
 
 interface NoteSheetProps {
@@ -93,19 +94,7 @@ export function NoteSheet({
           <SaveStatus saving={saving} />
         </div>
         <div className="flex items-center gap-1">
-          {/* 쓰다가 막힐 때 물어볼 수 있는 바깥 도우미. 쓰던 한 장이 남도록 새 탭으로 연다. */}
-          <a
-            href={HELPER_URL}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="양심성찰 도우미 열기"
-            className={cn(
-              buttonVariants({ variant: "ghost", size: "icon" }),
-              "text-muted-foreground"
-            )}
-          >
-            <Sparkles aria-hidden="true" />
-          </a>
+          <HelperLink />
           <CopyButton
             getText={() => noteToText(note)}
             className="text-muted-foreground"
