@@ -14,6 +14,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { MuteToggle } from "@/features/focus-timer";
 import { cn } from "@/lib/utils";
 
+import { BackupButton } from "./backup-button";
+
 const NAV_ITEMS: { href: string; label: string; icon: ComponentType<SVGProps<SVGSVGElement>> }[] = [
   { href: "/", label: "타이머", icon: Timer },
   { href: "/memo", label: "메모장", icon: NotebookPen },
@@ -59,6 +61,7 @@ export function AppHeader() {
         })}
       </nav>
       <div className="flex items-center justify-end gap-1">
+        <BackupButton />
         <ThemeToggle />
         <MuteToggle />
       </div>
