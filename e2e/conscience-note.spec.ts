@@ -85,6 +85,46 @@ test("폰 너비에서 양심노트 한 장이 가로 스크롤 없이 세로로
   expect(box!.x + box!.width).toBeLessThanOrEqual(360);
 });
 
+test("복사한 한 장과 다른 곳에서 쓴 글을 붙여넣으면 양식에 채워진다", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/conscience");
+  await page.getByRole("button", { name: "새 양심노트 쓰기" }).click();
+  await page.getByLabel("사안", { exact: true }).fill("약속에 늦었다");
+  await page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" }).click();
+  await page.getByRole("button", { name: "클립보드로 복사" }).click();
+  await expect(page.getByRole("button", { name: "복사됨" })).toBeVisible();
+  await page.getByRole("button", { name: "양심노트 삭제" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "확인" }).click();
+  await expect(page.getByRole("listitem")).toHaveCount(0);
+
+  // 이 앱에서 복사한 한 장은 그대로 돌아와 바로 열린다.
+  await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
+  await expect(page.getByLabel("사안", { exact: true })).toHaveValue("약속에 늦었다");
+  await expect(
+    page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" })
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "완료" }).click();
+
+  // 다른 메모장에서 쓴 글도 덕목 이름을 따라 나눠 담긴다.
+  await page.evaluate(() =>
+    navigator.clipboard.writeText(
+      "회의에서 말을 끊었다\n\n사랑 (찜찜)\n끝까지 듣지 않았다\n결론: 먼저 사과한다"
+    )
+  );
+  await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
+  await expect(page.getByLabel("사안", { exact: true })).toHaveValue("회의에서 말을 끊었다");
+  await expect(page.getByLabel("사랑", { exact: true })).toHaveValue("끝까지 듣지 않았다");
+  await expect(
+    page.getByRole("group", { name: "사랑 단계" }).getByRole("button", { name: "찜찜" })
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel("최종 결론")).toHaveValue("먼저 사과한다");
+  await page.getByRole("button", { name: "완료" }).click();
+  await expect(page.getByRole("listitem")).toHaveCount(2);
+});
+
 test("모두 내려받은 파일을 빈 목록에 불러오면 한 장이 그대로 돌아온다", async ({ page }) => {
   await page.goto("/conscience");
   await page.getByRole("button", { name: "새 양심노트 쓰기" }).click();

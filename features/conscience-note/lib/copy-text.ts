@@ -100,6 +100,66 @@ export function parseNotes(text: string): ConscienceNoteItem[] {
   return notes;
 }
 
+const LOOSE_NAMES: Record<string, string> = {
+  ...Object.fromEntries(HEADING_NAMES.map((name) => [name, name])),
+  최종결론: CONCLUSION,
+  결론: CONCLUSION,
+};
+// "[몰입] 자명" 말고도 "몰입", "## 몰입 (자명)", "1. 몰입: 깨어 있었다"처럼 적은 줄을 받는다.
+// 괄호나 쌍점 없이 뒤에 다른 글이 이어지는 줄("사랑하는 사람")은 구획으로 보지 않는다.
+const LOOSE_HEADING_LINE = new RegExp(
+  `^[\\s#>*\\-\\d.)]*\\[?\\s*(${Object.keys(LOOSE_NAMES).join("|")})\\s*\\]?\\**\\s*` +
+    `(?:[(\\-:：]?\\s*(${LEVELS.join("|")})\\s*\\)?)?\\**\\s*(?:[:：]\\s*(.*))?$`
+);
+const LOOSE_DATE_LINE =
+  /^(?:양심노트|날짜)?\s*[:：]?\s*(\d{4})\s*[-./년]\s*(\d{1,2})\s*[-./월]\s*(\d{1,2})\s*일?\.?$/;
+
+/**
+ * 붙여넣은 글을 한 장들로 읽는다. 이 앱에서 복사한 글은 parseNotes와 똑같이 읽고,
+ * 다른 곳에서 쓴 글은 덕목 이름이 적힌 줄을 찾아 양식에 나눠 담는다. 구획 앞의 글과
+ * 구획이 하나도 없는 글은 사안으로 들어간다.
+ */
+export function parsePastedNotes(text: string): ConscienceNoteItem[] {
+  const allLines = text.replace(/^﻿/, "").split(/\r?\n/);
+  if (allLines.every((line) => !line.trim())) return [];
+  if (allLines.some((line) => TITLE_LINE.test(line))) return parseNotes(text);
+
+  const note = createNote();
+  let section: string = MATTER;
+  let level: number | null = null;
+  let lines: string[] = [];
+  let sawHeading = false;
+
+  const closeSection = () => {
+    const body = lines.join("\n").trim();
+    const virtue = VIRTUES.find((item) => item.name === section);
+    if (section === MATTER) {
+      if (body) note.matter = note.matter ? `${note.matter}\n\n${body}` : body;
+    } else if (section === CONCLUSION) note.conclusion = body;
+    else if (virtue) note.virtues[virtue.key as VirtueKey] = { text: body, level };
+  };
+
+  for (const line of allLines) {
+    const heading = line.match(LOOSE_HEADING_LINE);
+    const date = sawHeading
+      ? null
+      : line.replace(/^[\s#>*]+|[\s*]+$/g, "").match(LOOSE_DATE_LINE);
+    if (heading) {
+      closeSection();
+      sawHeading = true;
+      section = LOOSE_NAMES[heading[1]];
+      level = heading[2] ? LEVELS.indexOf(heading[2] as (typeof LEVELS)[number]) : null;
+      lines = heading[3] ? [heading[3]] : [];
+    } else if (date && +date[2] >= 1 && +date[2] <= 12 && +date[3] >= 1 && +date[3] <= 31) {
+      note.date = `${date[1]}-${date[2].padStart(2, "0")}-${date[3].padStart(2, "0")}`;
+    } else {
+      lines.push(line);
+    }
+  }
+  closeSection();
+  return [note];
+}
+
 /** 이미 같은 내용의 한 장이 있으면 빼고, 새로 들어올 것만 돌려준다. */
 export function newNotesOnly(
   incoming: ConscienceNoteItem[],

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { ClipboardPaste, Plus, Trash2 } from "lucide-react";
 
 import { DownloadButton } from "@/components/download-button";
 import { ConscienceIcon } from "@/components/conscience-icon";
@@ -11,7 +11,12 @@ import { UploadButton } from "@/components/upload-button";
 import { DeleteNoteDialog } from "./components/delete-note-dialog";
 import { NoteSheet } from "./components/note-sheet";
 import { RadarChart } from "./components/radar-chart";
-import { allNotesFile, newNotesOnly, parseNotes } from "./lib/copy-text";
+import {
+  allNotesFile,
+  newNotesOnly,
+  parseNotes,
+  parsePastedNotes,
+} from "./lib/copy-text";
 import { COPYRIGHT_NOTICE } from "./lib/form";
 import {
   createNote,
@@ -54,6 +59,24 @@ export function ConscienceNote() {
     if (added.length > 0) saveNotes([...added, ...notes]);
   }
 
+  // 클립보드의 글을 한 장으로 만든다. 한 장만 들어오면 채워진 모습을 바로 보여 준다.
+  async function handlePaste() {
+    let text: string;
+    try {
+      text = await navigator.clipboard.readText();
+    } catch {
+      // 클립보드를 읽을 수 없거나 허락받지 못하면 아무것도 하지 않는다.
+      return;
+    }
+    const added = newNotesOnly(parsePastedNotes(text), notes);
+    if (added.length === 0) return;
+    saveNotes([...added, ...notes]);
+    if (added.length === 1) {
+      setOpenId(added[0].id);
+      setJustCreated(false);
+    }
+  }
+
   function handleDelete(id: string) {
     saveNotes(notes.filter((note) => note.id !== id));
     setOpenId(null);
@@ -76,6 +99,16 @@ export function ConscienceNote() {
             <div className="flex items-center justify-between">
               <h1 className="font-heading text-lg font-semibold">양심노트</h1>
               <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground"
+                  onClick={handlePaste}
+                >
+                  <ClipboardPaste aria-hidden="true" />
+                  <span className="sr-only">클립보드에서 붙여넣기</span>
+                </Button>
                 <UploadButton
                   accept=".txt,text/plain"
                   label="양심노트 불러오기"
