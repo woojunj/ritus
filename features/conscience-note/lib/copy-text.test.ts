@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { noteToText, parsePastedNotes } from "./copy-text";
+import { mergePastedNote, noteToText, parsePastedNotes } from "./copy-text";
 import { createNote, todayIso } from "./storage";
 
 describe("붙여넣은 글 읽기", () => {
@@ -56,5 +56,30 @@ describe("붙여넣은 글 읽기", () => {
 
   test("빈 글은 아무것도 만들지 않는다", () => {
     expect(parsePastedNotes(" \n\n")).toEqual([]);
+  });
+});
+
+describe("열려 있는 한 장에 붙여넣기", () => {
+  test("빈 칸은 채우고 글이 있는 칸에는 아래에 이어 붙인다", () => {
+    const note = createNote();
+    note.date = "2026-10-01";
+    note.matter = "회의에서 말을 끊었다";
+    note.virtues.love = { text: "", level: 3 };
+
+    const [pasted] = parsePastedNotes(
+      "2026.10.9\n상대가 말을 멈췄다\n사랑 (찜찜)\n끝까지 듣지 않았다\n정의 (찜자)\n결론: 먼저 사과한다"
+    );
+    const merged = mergePastedNote(note, pasted);
+
+    expect(merged?.matter).toBe("회의에서 말을 끊었다\n\n상대가 말을 멈췄다");
+    expect(merged?.virtues.love).toEqual({ text: "끝까지 듣지 않았다", level: 3 });
+    expect(merged?.virtues.justice).toEqual({ text: "", level: 1 });
+    expect(merged?.conclusion).toBe("먼저 사과한다");
+    expect(merged?.date).toBe("2026-10-01");
+    expect(merged?.id).toBe(note.id);
+  });
+
+  test("더할 것이 없으면 null을 돌려준다", () => {
+    expect(mergePastedNote(createNote(), createNote())).toBeNull();
   });
 });

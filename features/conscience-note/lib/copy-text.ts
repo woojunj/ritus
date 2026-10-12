@@ -160,6 +160,41 @@ export function parsePastedNotes(text: string): ConscienceNoteItem[] {
   return [note];
 }
 
+// 이미 쓴 글은 그대로 두고, 한 줄 띄운 뒤 붙여넣은 글을 잇는다.
+function appendText(existing: string, incoming: string): string {
+  if (!incoming) return existing;
+  return existing.trim() ? `${existing.trimEnd()}\n\n${incoming}` : incoming;
+}
+
+/**
+ * 붙여넣은 한 장을 열려 있는 한 장에 더한다. 빈 칸은 채우고 글이 있는 칸에는 아래에
+ * 이어 붙인다. 이미 고른 단계와 한 장의 날짜는 그대로 둔다. 더할 것이 없으면 null.
+ */
+export function mergePastedNote(
+  note: ConscienceNoteItem,
+  pasted: ConscienceNoteItem
+): ConscienceNoteItem | null {
+  const merged: ConscienceNoteItem = {
+    ...note,
+    matter: appendText(note.matter, pasted.matter),
+    virtues: Object.fromEntries(
+      VIRTUES.map((virtue) => {
+        const mine = note.virtues[virtue.key];
+        const theirs = pasted.virtues[virtue.key];
+        return [
+          virtue.key,
+          {
+            text: appendText(mine.text, theirs.text),
+            level: mine.level ?? theirs.level,
+          },
+        ];
+      })
+    ) as ConscienceNoteItem["virtues"],
+    conclusion: appendText(note.conclusion, pasted.conclusion),
+  };
+  return noteToText(merged) === noteToText(note) ? null : merged;
+}
+
 /** 이미 같은 내용의 한 장이 있으면 빼고, 새로 들어올 것만 돌려준다. */
 export function newNotesOnly(
   incoming: ConscienceNoteItem[],

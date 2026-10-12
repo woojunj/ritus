@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ComponentProps } from "react";
-import { Check, Sparkles, Trash2 } from "lucide-react";
+import { Check, ClipboardPaste, Sparkles, Trash2 } from "lucide-react";
 
 import { CopyButton } from "@/components/copy-button";
 import { DownloadButton } from "@/components/download-button";
@@ -20,7 +20,11 @@ interface NoteSheetProps {
   note: ConscienceNoteItem;
   /** 막 만든 한 장이면 사안 칸에 바로 입력할 수 있게 한다. */
   focusMatter?: boolean;
+  /** 붙여넣을 것이 없을 때처럼 잠깐 알릴 말. */
+  notice?: string | null;
   onChange: (note: ConscienceNoteItem) => void;
+  /** 클립보드의 글을 이 한 장에 더한다. */
+  onPaste: () => void;
   onBack: () => void;
   onDelete: () => void;
 }
@@ -44,7 +48,9 @@ const NAME_CLASS = "font-heading text-sm font-semibold sm:pt-1.5";
 export function NoteSheet({
   note,
   focusMatter = false,
+  notice = null,
   onChange: onNoteChange,
+  onPaste,
   onBack,
   onDelete,
 }: NoteSheetProps) {
@@ -104,6 +110,16 @@ export function NoteSheet({
             getText={() => noteToText(note)}
             className="text-muted-foreground"
           />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground"
+            onClick={onPaste}
+          >
+            <ClipboardPaste aria-hidden="true" />
+            <span className="sr-only">클립보드에서 붙여넣기</span>
+          </Button>
           <DownloadButton
             getFile={() => noteFile(note)}
             className="text-muted-foreground"
@@ -125,6 +141,12 @@ export function NoteSheet({
           </Button>
         </div>
       </div>
+
+      {notice && (
+        <p role="status" className="pb-3 text-center text-sm text-muted-foreground">
+          {notice}
+        </p>
+      )}
 
       <section className={ROW_CLASS}>
         <label htmlFor="conscience-matter" className={NAME_CLASS}>

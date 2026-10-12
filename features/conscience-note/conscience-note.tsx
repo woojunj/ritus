@@ -14,6 +14,7 @@ import { PasteDialog } from "./components/paste-dialog";
 import { RadarChart } from "./components/radar-chart";
 import {
   allNotesFile,
+  mergePastedNote,
   newNotesOnly,
   parseNotes,
   parsePastedNotes,
@@ -80,10 +81,22 @@ export function ConscienceNote() {
   }
 
   // 붙여넣은 글을 한 장으로 만든다. 한 장만 들어오면 채워진 모습을 바로 보여 준다.
+  // 한 장이 열려 있으면 새로 만들지 않고 그 한 장에 더한다.
   function addPasted(text: string) {
     const parsed = parsePastedNotes(text);
     if (parsed.length === 0) {
       showNotice("붙여넣을 글이 없습니다");
+      return;
+    }
+    if (openNote) {
+      // 여러 사안을 한 장에 섞지 않는다. 여러 장은 목록에서 각각의 한 장이 된다.
+      if (parsed.length > 1) {
+        showNotice("여러 장은 목록에서 붙여넣어 주세요");
+        return;
+      }
+      const merged = mergePastedNote(openNote, parsed[0]);
+      if (merged) handleChange(merged);
+      else showNotice("붙여넣을 글이 없습니다");
       return;
     }
     const added = newNotesOnly(parsed, notes);
@@ -123,7 +136,9 @@ export function ConscienceNote() {
             key={openNote.id}
             note={openNote}
             focusMatter={justCreated}
+            notice={notice}
             onChange={handleChange}
+            onPaste={handlePaste}
             onBack={() => setOpenId(null)}
             onDelete={() => handleDelete(openNote.id)}
           />
