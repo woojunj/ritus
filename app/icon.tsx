@@ -1,6 +1,9 @@
 import { ImageResponse } from "next/og";
 
-import { CONSCIENCE_HEXAGON_PATH } from "@/components/conscience-icon";
+import {
+  CONSCIENCE_HEXAGON_PATH,
+  CONSCIENCE_HEXAGON_VERTICES,
+} from "@/components/conscience-icon";
 
 export const size = { width: 64, height: 64 };
 export const contentType = "image/png";
@@ -24,10 +27,13 @@ export default function Icon() {
         <path
           d={CONSCIENCE_HEXAGON_PATH}
           stroke={GREEN}
-          strokeWidth="2.25"
+          strokeWidth="1.5"
           fill={GREEN}
           fillOpacity="0.2"
         />
+        {CONSCIENCE_HEXAGON_VERTICES.map(([x, y]) => (
+          <circle key={`${x},${y}`} cx={x} cy={y} r="1.6" fill={GREEN} />
+        ))}
         <circle cx="12" cy="12" r="2" fill={GREEN} />
       </svg>
     ),
