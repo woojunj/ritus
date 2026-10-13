@@ -102,7 +102,7 @@ describe("양심노트 불러오기", () => {
     expect(screen.getByLabelText("성실")).toHaveValue("미리 나서지 않았다");
     expect(screen.getByLabelText("최종 결론")).toHaveValue("먼저 사과한다");
     expect(
-      within(screen.getByRole("group", { name: "성실 단계" })).getByRole("button", {
+      within(screen.getByRole("group", { name: "성실 신호" })).getByRole("button", {
         name: "찜자",
       })
     ).toHaveAttribute("aria-pressed", "true");
@@ -148,22 +148,22 @@ describe("양심노트 불러오기", () => {
 });
 
 describe("양심노트 목록의 도표와 삭제", () => {
-  test("단계를 고른 한 장에만 작은 도표가 보인다", () => {
+  test("신호를 고른 한 장에만 작은 도표가 보인다", () => {
     render(<ConscienceNote />);
     startNewNote();
-    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "단계 없음" } });
+    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "신호 없음" } });
     backToList();
     startNewNote();
-    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "단계 있음" } });
+    fireEvent.change(screen.getByLabelText("사안"), { target: { value: "신호 있음" } });
     fireEvent.click(
-      within(screen.getByRole("group", { name: "정의 단계" })).getByRole("button", {
+      within(screen.getByRole("group", { name: "정의 신호" })).getByRole("button", {
         name: "자명",
       })
     );
     backToList();
 
     const [withLevel, withoutLevel] = screen.getAllByRole("listitem");
-    expect(withLevel).toHaveTextContent("단계 있음");
+    expect(withLevel).toHaveTextContent("신호 있음");
     expect(within(withLevel).getByTestId("note-chart")).toBeInTheDocument();
     expect(within(withoutLevel).queryByTestId("note-chart")).toBeNull();
   });
@@ -228,12 +228,12 @@ describe("양심노트 한 장", () => {
     expect(screen.getByText(COPYRIGHT_NOTICE)).toBeInTheDocument();
   });
 
-  test("덕목의 단계를 고르면 도표에 점이 찍히고, 다시 누르면 해제된다", () => {
+  test("덕목의 신호를 고르면 도표에 점이 찍히고, 다시 누르면 해제된다", () => {
     render(<ConscienceNote />);
     startNewNote();
     expect(chartDots()).toHaveLength(0);
 
-    const love = within(screen.getByRole("group", { name: "사랑 단계" }));
+    const love = within(screen.getByRole("group", { name: "사랑 신호" }));
     fireEvent.click(love.getByRole("button", { name: "자명" }));
     expect(love.getByRole("button", { name: "자명" })).toHaveAttribute(
       "aria-pressed",
@@ -255,14 +255,14 @@ describe("양심노트 한 장", () => {
     expect(chartDots()).toHaveLength(0);
   });
 
-  test("쓴 글과 고른 단계는 다시 열어도 그대로다", () => {
+  test("쓴 글과 고른 신호는 다시 열어도 그대로다", () => {
     const { unmount } = render(<ConscienceNote />);
     startNewNote();
     fireEvent.change(screen.getByLabelText("사안"), { target: { value: "약속에 늦었다" } });
     fireEvent.change(screen.getByLabelText("성실"), { target: { value: "미리 나서지 않았다" } });
     fireEvent.change(screen.getByLabelText("최종 결론"), { target: { value: "먼저 사과한다" } });
     fireEvent.click(
-      within(screen.getByRole("group", { name: "성실 단계" })).getByRole("button", {
+      within(screen.getByRole("group", { name: "성실 신호" })).getByRole("button", {
         name: "찜자",
       })
     );
@@ -276,7 +276,7 @@ describe("양심노트 한 장", () => {
     expect(screen.getByLabelText("성실")).toHaveValue("미리 나서지 않았다");
     expect(screen.getByLabelText("최종 결론")).toHaveValue("먼저 사과한다");
     expect(
-      within(screen.getByRole("group", { name: "성실 단계" })).getByRole("button", {
+      within(screen.getByRole("group", { name: "성실 신호" })).getByRole("button", {
         name: "찜자",
       })
     ).toHaveAttribute("aria-pressed", "true");
@@ -307,7 +307,7 @@ describe("양심노트 한 장", () => {
     fireEvent.change(screen.getByLabelText("성실"), { target: { value: "미리 나서지 않았다" } });
     fireEvent.change(screen.getByLabelText("최종 결론"), { target: { value: "먼저 사과한다" } });
     fireEvent.click(
-      within(screen.getByRole("group", { name: "성실 단계" })).getByRole("button", {
+      within(screen.getByRole("group", { name: "성실 신호" })).getByRole("button", {
         name: "찜자",
       })
     );

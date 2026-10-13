@@ -15,7 +15,7 @@ export function polarPoint(angle: number, radius: number): ChartPoint {
   };
 }
 
-/** 단계가 놓이는 거리. 찜찜(0)은 중심, 자명(3)은 가장 바깥 원이다. */
+/** 신호가 놓이는 거리. 찜찜(0)은 중심, 자명(3)은 가장 바깥 원이다. */
 export function levelRadius(level: number): number {
   return (CHART_RADIUS * level) / (LEVELS.length - 1);
 }
@@ -23,7 +23,7 @@ export function levelRadius(level: number): number {
 /** 도표를 한 바퀴 도는 순서로 늘어놓은 덕목. */
 export const AXES = [...VIRTUES].sort((a, b) => a.angle - b.angle);
 
-/** 단계를 고른 덕목만, 축 순서대로 점으로 바꾼다. */
+/** 신호를 고른 덕목만, 축 순서대로 점으로 바꾼다. */
 export function shapePoints(
   levels: Record<VirtueKey, number | null>
 ): (ChartPoint & { key: VirtueKey; level: number })[] {

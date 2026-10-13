@@ -12,7 +12,7 @@ const TITLE = "양심노트";
 const MATTER = "사안";
 const CONCLUSION = "최종 결론";
 
-/** 한 장을 양식 순서대로 읽히는 일반 텍스트로 만든다. 고른 단계는 덕목 이름 옆에 붙는다. */
+/** 한 장을 양식 순서대로 읽히는 일반 텍스트로 만든다. 고른 신호는 덕목 이름 옆에 붙는다. */
 export function noteToText(note: ConscienceNoteItem): string {
   const sections = [
     `${TITLE} ${formatNoteDate(note.date)}`,
@@ -168,7 +168,7 @@ function appendText(existing: string, incoming: string): string {
 
 /**
  * 붙여넣은 한 장을 열려 있는 한 장에 더한다. 빈 칸은 채우고 글이 있는 칸에는 아래에
- * 이어 붙인다. 이미 고른 단계와 한 장의 날짜는 그대로 둔다. 더할 것이 없으면 null.
+ * 이어 붙인다. 이미 고른 신호와 한 장의 날짜는 그대로 둔다. 더할 것이 없으면 null.
  */
 export function mergePastedNote(
   note: ConscienceNoteItem,

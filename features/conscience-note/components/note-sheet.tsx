@@ -171,7 +171,7 @@ export function NoteSheet({
               />
               <div
                 role="group"
-                aria-label={`${virtue.name} 단계`}
+                aria-label={`${virtue.name} 신호`}
                 className="flex flex-wrap gap-1"
               >
                 {LEVELS.map((level, index) => {
