@@ -13,9 +13,14 @@ export type TextFile = {
   type: string;
 };
 
-/** 글을 파일로 내려받게 한다. */
+/**
+ * 글을 파일로 내려받게 한다. txt, md, csv 같은 글 파일에는 BOM을 붙인다. BOM이
+ * 없으면 폰의 파일 보기나 엑셀이 한글을 다른 인코딩으로 읽어 깨뜨린다. JSON은
+ * BOM이 있으면 읽지 못하는 프로그램이 많아 붙이지 않는다.
+ */
 export function downloadTextFile({ name, text, type }: TextFile): void {
-  const blob = new Blob([text], { type: `${type};charset=utf-8` });
+  const bom = type.startsWith("text/") ? "﻿" : "";
+  const blob = new Blob([bom, text], { type: `${type};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;

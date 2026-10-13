@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { expect, test } from "@playwright/test";
 
 test("폰 너비에서 메모장이 가로 스크롤 없이 한 화면에 들어오고 편집/프리뷰를 전환한다", async ({
@@ -37,6 +39,17 @@ test("저장 버튼은 선택한 형식의 파일을 내려받는다", async ({ 
   await page.getByRole("button", { name: "파일로 저장" }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^ritus-memo-\d{8}\.md$/);
+
+  // 폰의 파일 보기가 한글을 깨뜨리지 않도록 UTF-8 BOM으로 시작한다.
+  const path = await download.path();
+  const bytes = await readFile(path);
+  expect([...bytes.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
+  expect(bytes.subarray(3).toString("utf8")).toBe("백업");
+
+  // 다시 불러오면 BOM 없이 글만 돌아온다.
+  await page.getByLabel("메모 본문").fill("");
+  await page.getByLabel("파일 불러오기 파일").setInputFiles(path);
+  await expect(page.getByLabel("메모 본문")).toHaveValue("백업");
 });
 
 test("복사 버튼을 누르면 메모가 클립보드에 담긴다", async ({ page, context }) => {
