@@ -57,6 +57,7 @@ export function CopyButton({
       size="icon"
       className={className}
       aria-label={copied ? "복사됨" : "클립보드로 복사"}
+      title={copied ? "복사됨" : "클립보드로 복사"}
       onClick={handleCopy}
     >
       {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}

@@ -105,6 +105,7 @@ export function NoteSheet({
             size="icon"
             className="text-muted-foreground"
             onClick={onPaste}
+            title="클립보드에서 붙여넣기"
           >
             <ClipboardPaste aria-hidden="true" />
             <span className="sr-only">클립보드에서 붙여넣기</span>
@@ -119,6 +120,7 @@ export function NoteSheet({
             size="icon"
             className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             onClick={() => setConfirmingDelete(true)}
+            title="양심노트 삭제"
           >
             <Trash2 aria-hidden="true" />
             <span className="sr-only">양심노트 삭제</span>

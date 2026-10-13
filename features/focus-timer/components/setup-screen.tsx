@@ -109,7 +109,7 @@ export function SetupScreen({
           </div>
         )}
 
-        <Button type="button" size="lg" className="w-full" onClick={onStart}>
+        <Button type="button" size="lg" className="w-full" title="시작" onClick={onStart}>
           <Play aria-hidden="true" />
           <span className="sr-only">시작</span>
         </Button>

@@ -23,6 +23,7 @@ export function DownloadButton({
       size="icon"
       className={className}
       aria-label={label}
+      title={label}
       onClick={() => downloadTextFile(getFile())}
     >
       <Download aria-hidden="true" />

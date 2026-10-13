@@ -15,6 +15,7 @@ export function MuteToggle() {
       variant="ghost"
       size="icon"
       aria-pressed={muted}
+      title={muted ? "소리 켜기" : "소리 끄기"}
       onClick={() => setMuted(!muted)}
     >
       {muted ? (

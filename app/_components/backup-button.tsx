@@ -47,7 +47,7 @@ export function BackupButton() {
 
   return (
     <>
-      <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(true)}>
+      <Button type="button" variant="ghost" size="icon" title="전체 백업" onClick={() => setOpen(true)}>
         <DatabaseBackup aria-hidden="true" />
         <span className="sr-only">전체 백업</span>
       </Button>

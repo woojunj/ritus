@@ -107,6 +107,7 @@ export function TodoList({
               type="submit"
               size="icon"
               aria-label="할 일 추가"
+              title="할 일 추가"
               disabled={!draft.trim()}
             >
               <Plus aria-hidden="true" />
@@ -196,6 +197,7 @@ export function TodoList({
                         }}
                         className="group flex flex-1 items-center gap-3 px-4 py-3.5 hover:bg-accent/40 active:bg-accent/60 transition-colors min-w-0"
                         aria-label={`"${item.title}" 타이머 시작`}
+                        title={`"${item.title}" 타이머 시작`}
                       >
                         <Timer
                           className="h-4 w-4 text-muted-foreground/70 shrink-0 group-hover:text-foreground transition-colors"
@@ -247,6 +249,7 @@ export function TodoList({
                               className="size-9 rounded-lg text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors"
                               onClick={() => setConfirmDeleteId(item.id)}
                               aria-label={`"${item.title}" 삭제`}
+                              title={`"${item.title}" 삭제`}
                             >
                               <Trash2 className="h-4 w-4" aria-hidden="true" />
                             </Button>
