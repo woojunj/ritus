@@ -32,6 +32,32 @@ describe("전체 백업", () => {
     expect(parseBackup(JSON.stringify({ todos: [] }))).toBeNull();
   });
 
+  test("망가진 항목은 바로잡거나 건너뛰어, 화면이 깨지지 않는 모양으로만 읽는다", () => {
+    const backup = parseBackup(
+      JSON.stringify({
+        app: "ritus",
+        conscienceNotes: [
+          { id: "x", date: "2026-10-13", matter: { a: 1 }, virtues: { love: { text: 3, level: 9 } } },
+          "한 장이 아님",
+        ],
+        memo: {},
+        todos: [{ title: "글쓰기", completionCount: "많이" }, { title: 1 }, null],
+      })
+    );
+
+    expect(backup?.conscienceNotes).toHaveLength(1);
+    const note = backup!.conscienceNotes[0];
+    expect(note.id).toBe("x");
+    expect(note.date).toBe("2026-10-13");
+    expect(note.matter).toBe("");
+    expect(note.virtues.love).toEqual({ text: "", level: null });
+    expect(note.virtues.wisdom).toEqual({ text: "", level: null });
+    expect(note.conclusion).toBe("");
+
+    expect(backup?.todos).toHaveLength(1);
+    expect(backup!.todos[0]).toMatchObject({ title: "글쓰기", completionCount: 0 });
+  });
+
   test("되살리면 지금 내용이 백업의 내용으로 바뀐다", () => {
     restoreBackup({
       ...SAMPLE,

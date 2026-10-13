@@ -7,5 +7,6 @@ export {
   subscribeTodos,
   getTodosSnapshot,
   getTodosServerSnapshot,
+  normalizeTodo,
 } from "./lib/storage";
 

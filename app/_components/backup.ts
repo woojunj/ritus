@@ -1,10 +1,16 @@
 import {
   getNotesSnapshot,
+  normalizeNote,
   saveNotes,
   type ConscienceNoteItem,
 } from "@/features/conscience-note";
 import { getMemoSnapshot, saveMemo, type MemoDoc } from "@/features/memo-pad";
-import { getTodosSnapshot, saveItems, type TodoItem } from "@/features/todo-list";
+import {
+  getTodosSnapshot,
+  normalizeTodo,
+  saveItems,
+  type TodoItem,
+} from "@/features/todo-list";
 import { dateStamp, type TextFile } from "@/lib/download";
 
 // 세 화면의 글을 한 파일로 묶은 것. 소리 끔과 테마는 기기마다 다를 수 있어 담지 않는다.
@@ -52,14 +58,17 @@ export function parseBackup(text: string): Backup | null {
   if (app !== APP) return null;
   const doc = (typeof memo === "object" && memo !== null ? memo : {}) as Partial<MemoDoc>;
   return {
+    // 항목마다 바로잡아, 망가진 파일을 불러와도 화면이 깨지지 않게 한다.
     conscienceNotes: Array.isArray(conscienceNotes)
-      ? (conscienceNotes as ConscienceNoteItem[])
+      ? conscienceNotes.map(normalizeNote).filter((note) => note !== null)
       : [],
     memo: {
       text: typeof doc.text === "string" ? doc.text : "",
       format: doc.format === "md" ? "md" : "txt",
     },
-    todos: Array.isArray(todos) ? (todos as TodoItem[]) : [],
+    todos: Array.isArray(todos)
+      ? todos.map(normalizeTodo).filter((todo) => todo !== null)
+      : [],
   };
 }
 
