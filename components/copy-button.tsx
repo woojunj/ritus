@@ -7,13 +7,16 @@ import { Button } from "@/components/ui/button";
 
 const COPIED_MS = 1500;
 
-// 글을 클립보드로 복사하는 아이콘 버튼. 복사하면 잠깐 체크 표시로 바뀐다.
+// 글을 클립보드로 복사하는 버튼. 복사하면 잠깐 체크 표시로 바뀐다.
+// label이 없으면 아이콘만 보이고, 있으면 아이콘 옆에 그 이름을 적는다.
 export function CopyButton({
   getText,
+  label,
   className,
 }: {
   /** 누르는 순간의 글을 돌려준다. */
   getText: () => string;
+  label?: string;
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
@@ -37,6 +40,15 @@ export function CopyButton({
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setCopied(false), COPIED_MS);
   };
+
+  if (label) {
+    return (
+      <Button type="button" variant="outline" size="sm" className={className} onClick={handleCopy}>
+        {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
+        {copied ? "복사됨" : label}
+      </Button>
+    );
+  }
 
   return (
     <Button

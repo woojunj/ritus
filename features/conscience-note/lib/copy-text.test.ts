@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { mergePastedNote, noteToText, parsePastedNotes } from "./copy-text";
+import { helperRequest, mergePastedNote, noteToText, parsePastedNotes } from "./copy-text";
 import { createNote, todayIso } from "./storage";
 
 describe("붙여넣은 글 읽기", () => {
@@ -81,5 +81,31 @@ describe("열려 있는 한 장에 붙여넣기", () => {
 
   test("더할 것이 없으면 null을 돌려준다", () => {
     expect(mergePastedNote(createNote(), createNote())).toBeNull();
+  });
+});
+
+describe("도우미에게 보낼 글", () => {
+  test("부탁하는 말 아래에 오늘 날짜의 빈 양식이 붙고, 신호 판단은 고를 때만 부탁한다", () => {
+    const blank = noteToText({ ...createNote(), date: todayIso() });
+
+    expect(helperRequest(false).endsWith(blank)).toBe(true);
+    expect(helperRequest(false)).not.toContain("판단");
+    expect(helperRequest(true).endsWith(blank)).toBe(true);
+    expect(helperRequest(true)).toContain("찜찜, 찜자, 자찜, 자명 중 하나를 판단해서");
+  });
+
+  test("도우미가 양식을 채워 돌려준 글은 칸마다 나뉘어 담긴다", () => {
+    const filled = helperRequest(true)
+      .replace("[사안]", "[사안]\n약속에 늦었다")
+      .replace("[몰입]", "[몰입] 자찜\n서두르느라 깨어 있지 못했다")
+      .replace("[최종 결론]", "[최종 결론]\n미리 나선다");
+
+    const notes = parsePastedNotes(filled);
+
+    expect(notes).toHaveLength(1);
+    expect(notes[0].date).toBe(todayIso());
+    expect(notes[0].matter).toBe("약속에 늦었다");
+    expect(notes[0].virtues.immersion).toEqual({ text: "서두르느라 깨어 있지 못했다", level: 2 });
+    expect(notes[0].conclusion).toBe("미리 나선다");
   });
 });

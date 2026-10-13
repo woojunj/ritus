@@ -28,6 +28,22 @@ export function noteToText(note: ConscienceNoteItem): string {
   return sections.map((section) => section.trimEnd()).join("\n\n");
 }
 
+/**
+ * 도우미에게 건넬 글. 부탁하는 말 아래에 오늘 날짜의 빈 양식이 붙는다. 쓴 글은 들어가지 않는다.
+ * withSignals면 신호도 판단해 달라는 부탁을 더한다.
+ */
+export function helperRequest(withSignals: boolean): string {
+  const lines = [
+    "아래 양식에 맞춰 정리해 주세요. 대괄호로 된 제목 줄은 그대로 두고, 그 아래에 글을 적어 주세요.",
+  ];
+  if (withSignals) {
+    lines.push(
+      `덕목마다 ${LEVELS.join(", ")} 중 하나를 판단해서 제목 줄의 대괄호 뒤에 적어 주세요. 예: [덕목 이름] ${LEVELS[LEVELS.length - 1]}`
+    );
+  }
+  return `${lines.join("\n")}\n\n${noteToText(createNote())}`;
+}
+
 /** 한 장을 내려받을 파일. 이름에는 그 한 장의 날짜가 들어간다. */
 export function noteFile(note: ConscienceNoteItem): TextFile {
   return {
