@@ -30,7 +30,7 @@ import {
 
 interface TodoListProps {
   /** 할 일 카드를 눌러 그 할 일로 타이머를 시작하려 할 때 호출된다. */
-  onStartTimer?: (item: TodoItem) => void;
+  onStartTimer: (item: TodoItem) => void;
   /** true를 돌려주면 onStartTimer를 부르기 전에 지금 세션을 그만둘지 확인한다. */
   shouldConfirmStart?: (item: TodoItem) => boolean;
 }
@@ -38,7 +38,7 @@ interface TodoListProps {
 export function TodoList({
   onStartTimer,
   shouldConfirmStart,
-}: TodoListProps = {}) {
+}: TodoListProps) {
   const items = useSyncExternalStore(
     subscribeTodos,
     getTodosSnapshot,
@@ -187,7 +187,6 @@ export function TodoList({
                       <Link
                         href="/"
                         onClick={(e) => {
-                          if (!onStartTimer) return;
                           e.preventDefault();
                           if (shouldConfirmStart?.(item)) {
                             setPendingStart(item);
@@ -279,7 +278,7 @@ export function TodoList({
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (pendingStart) onStartTimer?.(pendingStart);
+                if (pendingStart) onStartTimer(pendingStart);
                 setPendingStart(null);
               }}
             >

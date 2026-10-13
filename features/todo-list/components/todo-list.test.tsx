@@ -10,7 +10,7 @@ describe("TodoList", () => {
   });
 
   test("할 일을 추가하면 카드 전체가 타이머 링크가 되고 평상시에는 삭제 버튼이 노출되지 않는다", () => {
-    render(<TodoList />);
+    render(<TodoList onStartTimer={() => {}} />);
 
     const input = screen.getByLabelText("새 할 일");
     const submitBtn = screen.getByRole("button", { name: "할 일 추가" });
@@ -31,7 +31,7 @@ describe("TodoList", () => {
   });
 
   test("편집 버튼을 누르면 삭제 버튼이 나타나고, 취소할 수 있다", () => {
-    render(<TodoList />);
+    render(<TodoList onStartTimer={() => {}} />);
 
     const input = screen.getByLabelText("새 할 일");
     fireEvent.change(input, { target: { value: "실수로 누를 뻔한 일" } });
@@ -60,7 +60,7 @@ describe("TodoList", () => {
   });
 
   test("편집 모드에서 삭제 확인을 누르면 할 일이 삭제된다", () => {
-    render(<TodoList />);
+    render(<TodoList onStartTimer={() => {}} />);
 
     const input = screen.getByLabelText("새 할 일");
     fireEvent.change(input, { target: { value: "지울 일" } });
@@ -74,7 +74,7 @@ describe("TodoList", () => {
   });
 
   test("완주 횟수가 증가하면 목록에 ×1 배지가 표시된다", () => {
-    render(<TodoList />);
+    render(<TodoList onStartTimer={() => {}} />);
 
     const input = screen.getByLabelText("새 할 일");
     fireEvent.change(input, { target: { value: "완주할 목표" } });
@@ -112,7 +112,7 @@ describe("TodoList", () => {
         downloadName = this.download;
       });
 
-    render(<TodoList />);
+    render(<TodoList onStartTimer={() => {}} />);
     fireEvent.change(screen.getByLabelText("새 할 일"), { target: { value: "글쓰기" } });
     fireEvent.click(screen.getByRole("button", { name: "할 일 추가" }));
     fireEvent.click(screen.getByRole("button", { name: "파일로 저장" }));
@@ -127,7 +127,7 @@ describe("TodoList", () => {
   });
 
   test("내려받은 CSV를 불러오면 할 일과 완주 횟수가 더해지고, 이미 있는 제목은 건너뛴다", async () => {
-    render(<TodoList />);
+    render(<TodoList onStartTimer={() => {}} />);
     const csv = '\uFEFF할 일,완주 횟수\n"읽기, ""메모""",0\n글쓰기,3';
     const importCsv = () =>
       fireEvent.change(screen.getAllByLabelText("할 일 불러오기 파일")[0], {
@@ -151,7 +151,7 @@ describe("TodoList", () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal("navigator", Object.assign(navigator, { clipboard: { writeText } }));
 
-    render(<TodoList />);
+    render(<TodoList onStartTimer={() => {}} />);
     const input = screen.getByLabelText("새 할 일");
     fireEvent.change(input, { target: { value: "글쓰기" } });
     fireEvent.click(screen.getByRole("button", { name: "할 일 추가" }));

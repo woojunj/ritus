@@ -19,7 +19,6 @@
 
 ## 바로 할 수 있는 것
 
-- [ ] **`TodoList`의 `onStartTimer` 필수화**: 화면에는 영향이 없는 정리다. 내용은 [follow-ups/todo-list-without-start-handler-loses-todo.md](follow-ups/todo-list-without-start-handler-loses-todo.md)에 있다.
 - [ ] **전체 테스트의 시간 초과**: `bun run test`와 `bun run test:e2e`를 전체로 돌리면 돌릴 때마다 다른 테스트 1–2개가 시간 초과로 실패하고, 따로 돌리면 통과한다. 원인은 확인하지 않았다.
 
 ## 보류
