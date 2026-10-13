@@ -83,3 +83,19 @@ export function incrementCompletionCount(id: string): void {
   saveItems(next);
 }
 
+/**
+ * 밖에서 들어온 값(백업 파일 등)을 할 일로 바로잡는다. 제목이 없으면 null.
+ * 모양이 맞지 않는 칸은 기본값으로 바꿔, 화면이 깨지지 않게 한다.
+ */
+export function normalizeTodo(value: unknown): TodoItem | null {
+  if (typeof value !== "object" || value === null) return null;
+  const raw = value as Record<string, unknown>;
+  if (typeof raw.title !== "string" || !raw.title.trim()) return null;
+  const count = raw.completionCount;
+  return {
+    id: typeof raw.id === "string" && raw.id ? raw.id : crypto.randomUUID(),
+    title: raw.title,
+    completionCount: Number.isInteger(count) && (count as number) >= 0 ? (count as number) : 0,
+    createdAt: Number.isFinite(raw.createdAt) ? (raw.createdAt as number) : Date.now(),
+  };
+}

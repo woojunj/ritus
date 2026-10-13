@@ -1,4 +1,4 @@
-import { VIRTUES, type VirtueKey } from "./form";
+import { LEVELS, VIRTUES, type VirtueKey } from "./form";
 
 export type VirtueEntry = {
   text: string;
@@ -101,6 +101,42 @@ export function createNote(): ConscienceNoteItem {
     ) as Record<VirtueKey, VirtueEntry>,
     conclusion: "",
     createdAt: Date.now(),
+  };
+}
+
+function textOf(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+/**
+ * 밖에서 들어온 값(백업 파일 등)을 한 장으로 바로잡는다. 객체가 아니면 null.
+ * 모양이 맞지 않는 칸은 빈 값으로 바꿔, 화면이 깨지지 않게 한다.
+ */
+export function normalizeNote(value: unknown): ConscienceNoteItem | null {
+  if (typeof value !== "object" || value === null) return null;
+  const raw = value as Record<string, unknown>;
+  const note = createNote();
+  const virtues = (typeof raw.virtues === "object" && raw.virtues !== null
+    ? raw.virtues
+    : {}) as Record<string, unknown>;
+  for (const virtue of VIRTUES) {
+    const entry = (virtues[virtue.key] ?? {}) as Record<string, unknown>;
+    const level = entry.level;
+    note.virtues[virtue.key] = {
+      text: textOf(entry.text),
+      level:
+        Number.isInteger(level) && (level as number) >= 0 && (level as number) < LEVELS.length
+          ? (level as number)
+          : null,
+    };
+  }
+  return {
+    ...note,
+    id: typeof raw.id === "string" && raw.id ? raw.id : note.id,
+    date: typeof raw.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw.date) ? raw.date : note.date,
+    matter: textOf(raw.matter),
+    conclusion: textOf(raw.conclusion),
+    createdAt: Number.isFinite(raw.createdAt) ? (raw.createdAt as number) : note.createdAt,
   };
 }
 
