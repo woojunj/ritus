@@ -94,10 +94,16 @@ describe("도우미에게 보낼 글", () => {
     expect(helperRequest(true)).toContain("찜찜, 찜자, 자찜, 자명 중 하나를 판단해서");
   });
 
+  test("두 부탁 모두 답한 내용 앞에 질문도 짧게 적어 달라고 한다", () => {
+    for (const withSignals of [false, true]) {
+      expect(helperRequest(withSignals)).toContain("그 앞에 어떤 질문이었는지 짧게 적어 주세요");
+    }
+  });
+
   test("도우미가 양식을 채워 돌려준 글은 칸마다 나뉘어 담긴다", () => {
     const filled = helperRequest(true)
       .replace("[사안]", "[사안]\n약속에 늦었다")
-      .replace("[몰입]", "[몰입] 자찜\n서두르느라 깨어 있지 못했다")
+      .replace("[몰입]", "[몰입] 자찜\nQ. 그때 깨어 있었나요?\n서두르느라 깨어 있지 못했다")
       .replace("[최종 결론]", "[최종 결론]\n미리 나선다");
 
     const notes = parsePastedNotes(filled);
@@ -105,7 +111,10 @@ describe("도우미에게 보낼 글", () => {
     expect(notes).toHaveLength(1);
     expect(notes[0].date).toBe(todayIso());
     expect(notes[0].matter).toBe("약속에 늦었다");
-    expect(notes[0].virtues.immersion).toEqual({ text: "서두르느라 깨어 있지 못했다", level: 2 });
+    expect(notes[0].virtues.immersion).toEqual({
+      text: "Q. 그때 깨어 있었나요?\n서두르느라 깨어 있지 못했다",
+      level: 2,
+    });
     expect(notes[0].conclusion).toBe("미리 나선다");
   });
 });

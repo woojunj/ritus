@@ -35,6 +35,8 @@ export function noteToText(note: ConscienceNoteItem): string {
 export function helperRequest(withSignals: boolean): string {
   const lines = [
     "아래 양식에 맞춰 정리해 주세요. 대괄호로 된 제목 줄은 그대로 두고, 그 아래에 글을 적어 주세요.",
+    // 내용만 남으면 나중에 어떤 질문에 답한 것인지 알기 어렵다.
+    "우리가 나눈 대화에서 질문에 답한 내용을 적을 때는 그 앞에 어떤 질문이었는지 짧게 적어 주세요. 예: Q. 무엇이 두려웠나요?",
   ];
   if (withSignals) {
     lines.push(
