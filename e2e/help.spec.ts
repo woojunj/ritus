@@ -34,3 +34,38 @@ test("세션 중에 도움말을 열어도 세션이 이어지고, 폰 너비에
   );
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test("도움말에서 도우미에게 보낼 글을 복사해, 채워진 글을 양심노트에 붙여넣는다", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/help");
+  const clipboard = () => page.evaluate(() => navigator.clipboard.readText());
+
+  await page.getByRole("button", { name: "양식 복사", exact: true }).click();
+  await expect(page.getByRole("button", { name: "복사됨" })).toBeVisible();
+  const plain = await clipboard();
+  expect(plain).toContain("양식에 맞춰 정리해 주세요");
+  expect(plain).toContain("[사안]");
+  expect(plain).toContain("[최종 결론]");
+  expect(plain).not.toContain("판단");
+
+  await page.getByRole("button", { name: "양식과 신호 판단 복사" }).click();
+  const withSignals = await clipboard();
+  expect(withSignals).toContain("찜찜, 찜자, 자찜, 자명 중 하나를 판단해서");
+
+  // 도우미가 양식을 채워 돌려준 것처럼 만들어 목록에 붙여넣는다.
+  const filled = withSignals
+    .replace("[사안]", "[사안]\n약속에 늦었다")
+    .replace("[성실]", "[성실] 찜자\n미리 나서지 않았다");
+  await page.evaluate((text) => navigator.clipboard.writeText(text), filled);
+  await page.getByRole("link", { name: "양심노트", exact: true }).click();
+  await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
+
+  await page.getByText("약속에 늦었다").click();
+  await expect(page.getByLabel("사안")).toHaveValue("약속에 늦었다");
+  await expect(
+    page.getByRole("group", { name: "성실 신호" }).getByRole("button", { name: "찜자" })
+  ).toHaveAttribute("aria-pressed", "true");
+});
