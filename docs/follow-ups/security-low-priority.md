@@ -1,0 +1,7 @@
+# 보안 점검에서 남긴 낮은 우선순위 항목
+
+2026-10-13 보안 점검에서 찾았지만 지금 고치지 않은 것들이다. 모두 실행해서 재현하지는 않았다.
+
+- **CSV 수식 주입**: [features/todo-list/lib/csv.ts](../../features/todo-list/lib/csv.ts)의 `csvCell`은 `=`, `+`, `-`, `@`로 시작하는 제목을 그대로 내보낸다. 엑셀에서 열면 수식으로 실행될 수 있다. 다음 단계: 이런 칸 앞에 `'`를 붙이고, 불러올 때 떼어 낸다.
+- **`shadcn`이 `dependencies`에 있음**: 개발용 CLI라 `devDependencies`가 맞다. `bun audit`의 critical(`proxy-addr`) 일부가 이 경로로 들어온다. 브라우저 번들에는 들어가지 않는다.
+- **보안 헤더 없음**: CSP, `frame-ancestors` 같은 헤더를 두지 않았다. 지금은 HTML을 그리는 곳이 없어 위험이 낮다.
