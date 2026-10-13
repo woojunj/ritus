@@ -155,6 +155,7 @@ export function ConscienceNote() {
                   size="icon"
                   className="text-muted-foreground"
                   onClick={handlePaste}
+                  title="클립보드에서 붙여넣기"
                 >
                   <ClipboardPaste aria-hidden="true" />
                   <span className="sr-only">클립보드에서 붙여넣기</span>
@@ -172,7 +173,7 @@ export function ConscienceNote() {
                     className="text-muted-foreground"
                   />
                 )}
-                <Button type="button" size="icon" onClick={handleCreate}>
+                <Button type="button" size="icon" title="새 양심노트 쓰기" onClick={handleCreate}>
                   <Plus aria-hidden="true" />
                   <span className="sr-only">새 양심노트 쓰기</span>
                 </Button>
@@ -235,6 +236,7 @@ export function ConscienceNote() {
                           className="text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
                           onClick={() => setDeletingId(note.id)}
                           aria-label={`"${firstLine || date}" 삭제`}
+                          title={`"${firstLine || date}" 삭제`}
                         >
                           <Trash2 aria-hidden="true" />
                         </Button>

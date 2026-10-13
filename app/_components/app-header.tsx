@@ -53,6 +53,7 @@ export function AppHeader() {
               key={href}
               href={href}
               aria-label={label}
+              title={label}
               aria-current={current ? "page" : undefined}
               className={cn(
                 ICON_LINK_CLASS,
@@ -70,6 +71,7 @@ export function AppHeader() {
         <Link
           href="/help"
           aria-label="도움말"
+          title="도움말"
           aria-current={pathname === "/help" ? "page" : undefined}
           className={cn(
             ICON_LINK_CLASS,

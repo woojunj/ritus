@@ -14,6 +14,7 @@ export function HelperLink() {
       target="_blank"
       rel="noreferrer"
       aria-label="양심성찰 도우미 열기"
+      title="양심성찰 도우미 열기"
       className={cn(
         buttonVariants({ variant: "ghost", size: "icon" }),
         "text-muted-foreground"

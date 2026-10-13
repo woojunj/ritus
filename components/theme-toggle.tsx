@@ -31,6 +31,7 @@ export function ThemeToggle() {
       type="button"
       variant="ghost"
       size="icon"
+      title={`테마 선택: ${label}`}
       onClick={() => setTheme(next.value)}
     >
       <Icon aria-hidden="true" />

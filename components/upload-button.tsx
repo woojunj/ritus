@@ -42,6 +42,7 @@ export function UploadButton({
         size="icon"
         className={className}
         aria-label={label}
+        title={label}
         onClick={() => inputRef.current?.click()}
       >
         <Upload aria-hidden="true" />

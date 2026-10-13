@@ -106,6 +106,7 @@ export function MemoPad() {
               size="icon"
               className="md:hidden"
               aria-label={narrowView === "edit" ? "프리뷰 보기" : "편집하기"}
+              title={narrowView === "edit" ? "프리뷰 보기" : "편집하기"}
               onClick={() =>
                 setNarrowView((view) => (view === "edit" ? "preview" : "edit"))
               }

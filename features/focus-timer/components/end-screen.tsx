@@ -49,6 +49,7 @@ export function EndScreen({
       <Button
         type="button"
         size="lg"
+        title="다시 시작"
         onClick={(event) => {
           event.stopPropagation();
           onRestart();

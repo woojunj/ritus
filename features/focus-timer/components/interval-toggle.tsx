@@ -18,6 +18,7 @@ export function IntervalToggle({ enabled, onToggleEnabled }: IntervalToggleProps
       variant="outline"
       size="sm"
       aria-pressed={enabled}
+      title="번갈아 반복"
       onClick={onToggleEnabled}
     >
       <span aria-hidden="true" className="flex items-center gap-1">

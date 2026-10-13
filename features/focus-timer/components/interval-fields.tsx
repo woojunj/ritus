@@ -131,6 +131,7 @@ function SecondsField({
           <button
             type="button"
             aria-label={`${label} 늘리기`}
+            title={`${label} 늘리기`}
             onClick={() => commit(value + 1)}
             className="text-muted-foreground hover:text-foreground"
           >
@@ -139,6 +140,7 @@ function SecondsField({
           <button
             type="button"
             aria-label={`${label} 줄이기`}
+            title={`${label} 줄이기`}
             onClick={() => commit(value - 1)}
             className="text-muted-foreground hover:text-foreground"
           >

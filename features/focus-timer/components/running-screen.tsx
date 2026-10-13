@@ -54,6 +54,7 @@ export function RunningScreen({
         size="sm"
         aria-pressed={showClock}
         aria-label={showClock ? "숫자 가리기" : "숫자 보이기"}
+        title={showClock ? "숫자 가리기" : "숫자 보이기"}
         onClick={() => setShowClock((value) => !value)}
         className="gap-2"
       >
@@ -96,7 +97,12 @@ export function RunningScreen({
       )}
 
       <div className="flex gap-3">
-        <Button type="button" variant="outline" onClick={onTogglePause}>
+        <Button
+          type="button"
+          variant="outline"
+          title={phase === "running" ? "일시정지" : "이어서"}
+          onClick={onTogglePause}
+        >
           {phase === "running" ? (
             <Pause aria-hidden="true" />
           ) : (
@@ -106,7 +112,7 @@ export function RunningScreen({
             {phase === "running" ? "일시정지" : "이어서"}
           </span>
         </Button>
-        <Button type="button" variant="ghost" onClick={onQuit}>
+        <Button type="button" variant="ghost" title="그만두기" onClick={onQuit}>
           <Square aria-hidden="true" />
           <span className="sr-only">그만두기</span>
         </Button>

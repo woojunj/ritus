@@ -46,14 +46,20 @@ export function SessionBar({ showWhenIdle = false }: SessionBarProps) {
       </span>
 
       {phase === "setup" && (
-        <Button type="button" variant="ghost" size="icon" onClick={start}>
+        <Button type="button" variant="ghost" size="icon" title="시작" onClick={start}>
           <Play aria-hidden="true" />
           <span className="sr-only">시작</span>
         </Button>
       )}
       {isActive && (
         <>
-          <Button type="button" variant="ghost" size="icon" onClick={togglePause}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            title={phase === "running" ? "일시정지" : "이어서"}
+            onClick={togglePause}
+          >
             {phase === "running" ? (
               <Pause aria-hidden="true" />
             ) : (
@@ -63,14 +69,14 @@ export function SessionBar({ showWhenIdle = false }: SessionBarProps) {
               {phase === "running" ? "일시정지" : "이어서"}
             </span>
           </Button>
-          <Button type="button" variant="ghost" size="icon" onClick={quit}>
+          <Button type="button" variant="ghost" size="icon" title="그만두기" onClick={quit}>
             <Square aria-hidden="true" />
             <span className="sr-only">그만두기</span>
           </Button>
         </>
       )}
       {phase === "ended" && (
-        <Button type="button" variant="ghost" size="icon" onClick={start}>
+        <Button type="button" variant="ghost" size="icon" title="다시 시작" onClick={start}>
           <RotateCcw aria-hidden="true" />
           <span className="sr-only">다시 시작</span>
         </Button>
