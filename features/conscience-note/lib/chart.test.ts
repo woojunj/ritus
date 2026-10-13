@@ -41,7 +41,7 @@ describe("방사형 도표", () => {
     }
   });
 
-  test("단계를 고르지 않은 덕목은 도형에 들어가지 않는다", () => {
+  test("신호를 고르지 않은 덕목은 도형에 들어가지 않는다", () => {
     const points = shapePoints({ ...levelsOf(null), love: 2, wisdom: 1 });
     expect(points.map((point) => point.key)).toEqual(["wisdom", "love"]);
   });

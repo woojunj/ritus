@@ -222,7 +222,7 @@ export function ConscienceNote() {
                             </span>
                           )}
                         </span>
-                        {/* 단계를 하나라도 고른 한 장은 그 모양을 작게 보여 준다. */}
+                        {/* 신호를 하나라도 고른 한 장은 그 모양을 작게 보여 준다. */}
                         {hasLevel && (
                           <RadarChart levels={levels} compact className="shrink-0" />
                         )}

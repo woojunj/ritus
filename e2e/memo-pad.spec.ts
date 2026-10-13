@@ -73,9 +73,14 @@ test("저장된 글이 나타나기 전에 쓴 글이 저장된 글과 섞이지
       localStorage.setItem("ritus:memo", JSON.stringify({ text: "저장된 글", format: "txt" }));
     }
   });
-  // 스크립트를 늦춰 저장된 글이 아직 들어오지 않은 빈 화면을 만든다.
-  await page.route("**/_next/static/**", async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+  // 스크립트를 붙잡아 저장된 글이 아직 들어오지 않은 빈 화면을 만든다.
+  let release = () => {};
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  // 스타일까지 붙잡으면 화면 자체가 그려지지 않으므로 스크립트만 붙잡는다.
+  await page.route(/\/_next\/static\/.*\.js(\?|$)/, async (route) => {
+    await held;
     await route.continue();
   });
   await page.goto("/memo", { waitUntil: "commit" });
@@ -85,6 +90,7 @@ test("저장된 글이 나타나기 전에 쓴 글이 저장된 글과 섞이지
   await expect(body).not.toBeEditable();
   await body.click();
   await page.keyboard.type("abc");
+  release();
 
   await expect(body).toBeEditable();
   await expect(body).toHaveValue("저장된 글");

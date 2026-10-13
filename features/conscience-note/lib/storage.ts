@@ -104,7 +104,7 @@ export function createNote(): ConscienceNoteItem {
   };
 }
 
-/** 한 장에서 덕목별로 고른 단계만 뽑는다. */
+/** 한 장에서 덕목별로 고른 신호만 뽑는다. */
 export function noteLevels(
   note: ConscienceNoteItem
 ): Record<VirtueKey, number | null> {

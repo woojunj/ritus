@@ -12,7 +12,7 @@ import { LEVELS, VIRTUES, type VirtueKey } from "../lib/form";
 interface RadarChartProps {
   levels: Record<VirtueKey, number | null>;
   /**
-   * 목록에 넣는 작은 도표. 덕목과 단계 이름, 안쪽 원을 빼고 바깥 원과 도형만 그린다.
+   * 목록에 넣는 작은 도표. 덕목과 신호 이름, 안쪽 원을 빼고 바깥 원과 도형만 그린다.
    * 옆의 글이 내용을 전하므로 스크린리더에는 숨긴다.
    */
   compact?: boolean;
@@ -21,7 +21,7 @@ interface RadarChartProps {
 
 const LABEL_GAP = 20;
 
-// 양식의 육각형 도표. 여섯 축과 세 겹의 동심원 위에 고른 단계를 점과 도형으로 그린다.
+// 양식의 육각형 도표. 여섯 축과 세 겹의 동심원 위에 고른 신호를 점과 도형으로 그린다.
 export function RadarChart({ levels, compact = false, className }: RadarChartProps) {
   const points = shapePoints(levels);
   const polygon = points.length > 1 && (
@@ -71,7 +71,7 @@ export function RadarChart({ levels, compact = false, className }: RadarChartPro
     <svg
       role="img"
       aria-label={
-        summary ? `여섯 덕목 도표: ${summary}` : "여섯 덕목 도표: 고른 단계 없음"
+        summary ? `여섯 덕목 도표: ${summary}` : "여섯 덕목 도표: 고른 신호 없음"
       }
       viewBox="-130 -118 260 236"
       className={cn("h-auto w-full max-w-64", className)}
@@ -107,7 +107,7 @@ export function RadarChart({ levels, compact = false, className }: RadarChartPro
           </g>
         );
       })}
-      {/* 양식처럼 사랑 축 아래에 단계 이름을 적어 안쪽과 바깥쪽을 알린다. */}
+      {/* 양식처럼 사랑 축 아래에 신호 이름을 적어 안쪽과 바깥쪽을 알린다. */}
       {LEVELS.map((level, index) => (
         <text
           key={level}

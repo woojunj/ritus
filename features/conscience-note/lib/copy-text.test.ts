@@ -4,7 +4,7 @@ import { mergePastedNote, noteToText, parsePastedNotes } from "./copy-text";
 import { createNote, todayIso } from "./storage";
 
 describe("붙여넣은 글 읽기", () => {
-  test("이 앱에서 복사한 한 장은 날짜, 글, 단계 그대로 돌아온다", () => {
+  test("이 앱에서 복사한 한 장은 날짜, 글, 신호 그대로 돌아온다", () => {
     const note = createNote();
     note.date = "2026-10-11";
     note.matter = "회의에서 말을 끊었다";

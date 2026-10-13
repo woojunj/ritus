@@ -20,11 +20,11 @@ test("양심노트를 쓰면 도표가 그려지고, 새로고침해도 남아 �
   await page.getByLabel("사안").fill("회의에서 말을 끊었다");
   await page.getByLabel("사랑", { exact: true }).fill("상대의 말을 끝까지 듣지 않았다");
   await page
-    .getByRole("group", { name: "사랑 단계" })
+    .getByRole("group", { name: "사랑 신호" })
     .getByRole("button", { name: "찜자" })
     .click();
   await page
-    .getByRole("group", { name: "정의 단계" })
+    .getByRole("group", { name: "정의 신호" })
     .getByRole("button", { name: "자명" })
     .click();
   await page.getByLabel("최종 결론").fill("먼저 사과한다");
@@ -39,7 +39,7 @@ test("양심노트를 쓰면 도표가 그려지고, 새로고침해도 남아 �
   await page.getByRole("button", { name: /회의에서 말을 끊었다$/ }).click();
   await expect(page.getByLabel("최종 결론")).toHaveValue("먼저 사과한다");
   await expect(
-    page.getByRole("group", { name: "정의 단계" }).getByRole("button", { name: "자명" })
+    page.getByRole("group", { name: "정의 신호" }).getByRole("button", { name: "자명" })
   ).toHaveAttribute("aria-pressed", "true");
 
   await page.getByRole("button", { name: "완료" }).click();
@@ -70,7 +70,7 @@ test("폰 너비에서 양심노트 한 장이 가로 스크롤 없이 세로로
   await page.goto("/conscience");
   await page.getByRole("button", { name: "새 양심노트 쓰기" }).click();
   await page
-    .getByRole("group", { name: "지혜 단계" })
+    .getByRole("group", { name: "지혜 신호" })
     .getByRole("button", { name: "자명" })
     .click();
 
@@ -101,7 +101,7 @@ test("복사한 한 장과 다른 곳에서 쓴 글을 붙여넣으면 양식에
   await page.goto("/conscience");
   await page.getByRole("button", { name: "새 양심노트 쓰기" }).click();
   await page.getByLabel("사안", { exact: true }).fill("약속에 늦었다");
-  await page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" }).click();
+  await page.getByRole("group", { name: "성실 신호" }).getByRole("button", { name: "찜자" }).click();
   await page.getByRole("button", { name: "클립보드로 복사" }).click();
   await expect(page.getByRole("button", { name: "복사됨" })).toBeVisible();
   await page.getByRole("button", { name: "양심노트 삭제" }).click();
@@ -112,7 +112,7 @@ test("복사한 한 장과 다른 곳에서 쓴 글을 붙여넣으면 양식에
   await page.getByRole("button", { name: "클립보드에서 붙여넣기" }).click();
   await expect(page.getByLabel("사안", { exact: true })).toHaveValue("약속에 늦었다");
   await expect(
-    page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" })
+    page.getByRole("group", { name: "성실 신호" }).getByRole("button", { name: "찜자" })
   ).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "완료" }).click();
 
@@ -126,7 +126,7 @@ test("복사한 한 장과 다른 곳에서 쓴 글을 붙여넣으면 양식에
   await expect(page.getByLabel("사안", { exact: true })).toHaveValue("회의에서 말을 끊었다");
   await expect(page.getByLabel("사랑", { exact: true })).toHaveValue("끝까지 듣지 않았다");
   await expect(
-    page.getByRole("group", { name: "사랑 단계" }).getByRole("button", { name: "찜찜" })
+    page.getByRole("group", { name: "사랑 신호" }).getByRole("button", { name: "찜찜" })
   ).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByLabel("최종 결론")).toHaveValue("먼저 사과한다");
   await page.getByRole("button", { name: "완료" }).click();
@@ -143,7 +143,7 @@ test("한 장에서 붙여넣으면 빈 칸은 채우고 쓴 글 아래에 이�
   await page.goto("/conscience");
   await page.getByRole("button", { name: "새 양심노트 쓰기" }).click();
   await page.getByLabel("사안", { exact: true }).fill("회의에서 말을 끊었다");
-  await page.getByRole("group", { name: "사랑 단계" }).getByRole("button", { name: "자명" }).click();
+  await page.getByRole("group", { name: "사랑 신호" }).getByRole("button", { name: "자명" }).click();
 
   await page.evaluate(() =>
     navigator.clipboard.writeText(
@@ -157,7 +157,7 @@ test("한 장에서 붙여넣으면 빈 칸은 채우고 쓴 글 아래에 이�
   );
   await expect(page.getByLabel("사랑", { exact: true })).toHaveValue("끝까지 듣지 않았다");
   await expect(
-    page.getByRole("group", { name: "사랑 단계" }).getByRole("button", { name: "자명" })
+    page.getByRole("group", { name: "사랑 신호" }).getByRole("button", { name: "자명" })
   ).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByLabel("최종 결론")).toHaveValue("먼저 사과한다");
 
@@ -199,7 +199,7 @@ test("브라우저가 클립보드 읽기를 막으면 직접 붙여넣는 창�
   await expect(page.getByLabel("사안", { exact: true })).toHaveValue("약속에 늦었다");
   await expect(page.getByLabel("성실", { exact: true })).toHaveValue("미리 나서지 않았다");
   await expect(
-    page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" })
+    page.getByRole("group", { name: "성실 신호" }).getByRole("button", { name: "찜자" })
   ).toHaveAttribute("aria-pressed", "true");
 });
 
@@ -208,7 +208,7 @@ test("모두 내려받은 파일을 빈 목록에 불러오면 한 장이 그대
   await page.getByRole("button", { name: "새 양심노트 쓰기" }).click();
   await page.getByLabel("사안", { exact: true }).fill("약속에 늦었다");
   await page.getByLabel("성실", { exact: true }).fill("미리 나서지 않았다");
-  await page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" }).click();
+  await page.getByRole("group", { name: "성실 신호" }).getByRole("button", { name: "찜자" }).click();
   await page.getByRole("button", { name: "완료" }).click();
 
   const downloadPromise = page.waitForEvent("download");
@@ -227,6 +227,6 @@ test("모두 내려받은 파일을 빈 목록에 불러오면 한 장이 그대
   await expect(page.getByLabel("사안", { exact: true })).toHaveValue("약속에 늦었다");
   await expect(page.getByLabel("성실", { exact: true })).toHaveValue("미리 나서지 않았다");
   await expect(
-    page.getByRole("group", { name: "성실 단계" }).getByRole("button", { name: "찜자" })
+    page.getByRole("group", { name: "성실 신호" }).getByRole("button", { name: "찜자" })
   ).toHaveAttribute("aria-pressed", "true");
 });

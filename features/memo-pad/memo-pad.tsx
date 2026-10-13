@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import ReactMarkdown from "react-markdown";
 import { Eye, PencilLine } from "lucide-react";
 
 import { CopyButton } from "@/components/copy-button";
 import { DownloadButton } from "@/components/download-button";
+import { Markdown } from "@/components/markdown";
 import { SaveStatus, useSaveStatus } from "@/components/save-status";
 import {
   AlertDialog,
@@ -33,17 +33,6 @@ import {
 } from "./lib/storage";
 
 const FORMATS: MemoFormat[] = ["txt", "md"];
-
-// 프리뷰 안의 마크다운 요소 스타일. typography 플러그인 없이 필요한 만큼만 둔다.
-const PREVIEW_CLASS = cn(
-  "space-y-3 text-sm leading-relaxed",
-  "[&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:text-lg [&_h3]:font-semibold",
-  "[&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5",
-  "[&_a]:text-primary [&_a]:underline",
-  "[&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono",
-  "[&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-muted [&_pre]:p-3 [&_pre_code]:p-0",
-  "[&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground"
-);
 
 export function MemoPad() {
   const doc = useSyncExternalStore(
@@ -186,11 +175,10 @@ export function MemoPad() {
             data-testid="memo-preview"
             className={cn(
               "min-h-0 overflow-y-auto border-t p-4 md:border-t-0 md:border-l",
-              PREVIEW_CLASS,
               narrowView === "edit" && "hidden md:block"
             )}
           >
-            <ReactMarkdown>{doc.text}</ReactMarkdown>
+            <Markdown>{doc.text}</Markdown>
           </div>
         )}
       </div>
