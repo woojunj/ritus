@@ -11,6 +11,13 @@ test("도움말 아이콘을 누르면 매뉴얼이 서식대로 보이고 문�
   await expect(page.getByRole("heading", { level: 1, name: "ritus 사용법" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "양심노트" })).toBeVisible();
 
+  // 아이콘을 누르는 설명에는 이름 앞에 그 아이콘이 보이고, 자리 표시는 글로 새지 않는다.
+  const article = page.getByRole("article");
+  await expect(
+    article.getByRole("listitem").filter({ hasText: "글 전체를 클립보드에 담습니다" }).locator("svg")
+  ).toBeVisible();
+  await expect(article).not.toContainText("아이콘:");
+
   const backup = page.getByRole("heading", { level: 2, name: "전체 백업" });
   await expect(backup).not.toBeInViewport();
   await page.getByRole("article").getByRole("link", { name: "전체 백업" }).click();
