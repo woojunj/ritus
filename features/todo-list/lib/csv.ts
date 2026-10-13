@@ -15,11 +15,11 @@ export function todosToCsv(items: TodoItem[]): string {
   ].join("\n");
 }
 
-/** 할 일 목록을 내려받을 CSV 파일. 엑셀이 한글을 바로 읽도록 BOM을 붙인다. */
+/** 할 일 목록을 내려받을 CSV 파일. */
 export function todosFile(items: TodoItem[]): TextFile {
   return {
     name: `ritus-todos-${dateStamp()}.csv`,
-    text: `\uFEFF${todosToCsv(items)}`,
+    text: todosToCsv(items),
     type: "text/csv",
   };
 }
