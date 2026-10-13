@@ -104,40 +104,49 @@ export function createNote(): ConscienceNoteItem {
   };
 }
 
-function textOf(value: unknown): string {
-  return typeof value === "string" ? value : "";
-}
-
 /**
  * 밖에서 들어온 값(백업 파일 등)을 한 장으로 바로잡는다. 객체가 아니면 null.
- * 모양이 맞지 않는 칸은 빈 값으로 바꿔, 화면이 깨지지 않게 한다.
+ * 모양이 맞지 않는 칸은 빈 값으로 바꿔 화면이 깨지지 않게 하고, 바꾼 칸이 있으면 repaired다.
  */
-export function normalizeNote(value: unknown): ConscienceNoteItem | null {
+export function normalizeNote(
+  value: unknown
+): { item: ConscienceNoteItem; repaired: boolean } | null {
   if (typeof value !== "object" || value === null) return null;
   const raw = value as Record<string, unknown>;
   const note = createNote();
+  let repaired = false;
+  const pick = <T,>(ok: boolean, valid: T, fallback: T): T => {
+    if (!ok) repaired = true;
+    return ok ? valid : fallback;
+  };
+
   const virtues = (typeof raw.virtues === "object" && raw.virtues !== null
     ? raw.virtues
     : {}) as Record<string, unknown>;
   for (const virtue of VIRTUES) {
     const entry = (virtues[virtue.key] ?? {}) as Record<string, unknown>;
     const level = entry.level;
+    const levelOk =
+      level === null ||
+      (Number.isInteger(level) && (level as number) >= 0 && (level as number) < LEVELS.length);
     note.virtues[virtue.key] = {
-      text: textOf(entry.text),
-      level:
-        Number.isInteger(level) && (level as number) >= 0 && (level as number) < LEVELS.length
-          ? (level as number)
-          : null,
+      text: pick(typeof entry.text === "string", entry.text as string, ""),
+      level: pick(levelOk, level as number | null, null),
     };
   }
-  return {
+  const item: ConscienceNoteItem = {
     ...note,
-    id: typeof raw.id === "string" && raw.id ? raw.id : note.id,
-    date: typeof raw.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw.date) ? raw.date : note.date,
-    matter: textOf(raw.matter),
-    conclusion: textOf(raw.conclusion),
-    createdAt: Number.isFinite(raw.createdAt) ? (raw.createdAt as number) : note.createdAt,
+    id: pick(typeof raw.id === "string" && raw.id !== "", raw.id as string, note.id),
+    date: pick(
+      typeof raw.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw.date),
+      raw.date as string,
+      note.date
+    ),
+    matter: pick(typeof raw.matter === "string", raw.matter as string, ""),
+    conclusion: pick(typeof raw.conclusion === "string", raw.conclusion as string, ""),
+    createdAt: pick(Number.isFinite(raw.createdAt), raw.createdAt as number, note.createdAt),
   };
+  return { item, repaired };
 }
 
 /** 한 장에서 덕목별로 고른 신호만 뽑는다. */

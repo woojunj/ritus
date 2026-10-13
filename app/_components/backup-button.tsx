@@ -18,18 +18,22 @@ import { downloadTextFile } from "@/lib/download";
 
 import {
   backupFile,
+  backupIssueSummary,
   backupSummary,
   currentBackup,
   parseBackup,
   restoreBackup,
   type Backup,
+  type BackupIssues,
 } from "./backup";
 
 // 양심노트, 메모, 할 일을 한 파일로 저장하고 되살리는 헤더 버튼.
 // 불러오면 지금 내용이 사라지므로 무엇이 바뀌는지 보여 주고 확인을 받는다.
 export function BackupButton() {
   const [open, setOpen] = useState(false);
-  const [pending, setPending] = useState<Backup | null>(null);
+  const [pending, setPending] = useState<{ backup: Backup; issues: BackupIssues } | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -58,9 +62,9 @@ export function BackupButton() {
           // 같은 파일을 다시 골라도 불러올 수 있게 비운다.
           e.target.value = "";
           if (!file) return;
-          const backup = parseBackup(await file.text());
-          setPending(backup);
-          setError(backup ? null : "ritus 백업 파일이 아닙니다");
+          const parsed = parseBackup(await file.text());
+          setPending(parsed);
+          setError(parsed ? null : "ritus 백업 파일이 아닙니다");
         }}
       />
       <AlertDialog open={open} onOpenChange={handleOpenChange}>
@@ -77,13 +81,19 @@ export function BackupButton() {
                 <dt className="text-muted-foreground">지금</dt>
                 <dd>{backupSummary(currentBackup())}</dd>
                 <dt className="text-muted-foreground">백업 파일</dt>
-                <dd>{backupSummary(pending)}</dd>
+                <dd>{backupSummary(pending.backup)}</dd>
               </dl>
+              {/* 망가진 항목을 바로잡거나 건너뛴 것을 바꾸기 전에 알린다. */}
+              {backupIssueSummary(pending.issues) && (
+                <p role="alert" className="text-sm text-destructive">
+                  {backupIssueSummary(pending.issues)}
+                </p>
+              )}
               <AlertDialogFooter>
                 <AlertDialogCancel>취소</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => {
-                    restoreBackup(pending);
+                    restoreBackup(pending.backup);
                     handleOpenChange(false);
                   }}
                 >
