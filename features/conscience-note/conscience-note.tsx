@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { ClipboardPaste, Plus, Trash2 } from "lucide-react";
+import { ClipboardPaste, Plus, Search, Trash2, X } from "lucide-react";
 
 import { DownloadButton } from "@/components/download-button";
 import { ConscienceIcon } from "@/components/conscience-icon";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { UploadButton } from "@/components/upload-button";
 
 import { DeleteNoteDialog } from "./components/delete-note-dialog";
@@ -21,6 +22,11 @@ import {
   parsePastedNotes,
 } from "./lib/copy-text";
 import { COPYRIGHT_NOTICE } from "./lib/form";
+import {
+  matchedFieldLabels,
+  noteMatches,
+  searchTerms,
+} from "./lib/search";
 import {
   createNote,
   formatNoteDate,
@@ -47,6 +53,8 @@ export function ConscienceNote() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pasteDialogOpen, setPasteDialogOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -57,9 +65,21 @@ export function ConscienceNote() {
   );
   const openNote = notes.find((note) => note.id === openId);
 
+  // 검색은 목록에서만 쓴다. 한 장을 열면 검색 칸과 검색어를 함께 지운다.
+  function closeSearch() {
+    setSearchOpen(false);
+    setQuery("");
+  }
+
+  const terms = searchTerms(query);
+  const visibleNotes = searchOpen
+    ? sortNotes(notes).filter((note) => noteMatches(note, terms))
+    : sortNotes(notes);
+
   function handleCreate() {
     const note = createNote();
     saveNotes([note, ...notes]);
+    closeSearch();
     setOpenId(note.id);
     setJustCreated(true);
   }
@@ -107,6 +127,7 @@ export function ConscienceNote() {
     }
     saveNotes([...added, ...notes]);
     if (added.length === 1) {
+      closeSearch();
       setOpenId(added[0].id);
       setJustCreated(false);
     }
@@ -146,7 +167,23 @@ export function ConscienceNote() {
         ) : (
           <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-8">
             <div className="flex items-center justify-between">
-              <h1 className="font-heading text-lg font-semibold">양심노트</h1>
+              <div className="flex items-center gap-1">
+                <h1 className="font-heading text-lg font-semibold">양심노트</h1>
+                {notes.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground"
+                    title="양심노트 검색"
+                    aria-expanded={searchOpen}
+                    onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
+                  >
+                    <Search aria-hidden="true" />
+                    <span className="sr-only">양심노트 검색</span>
+                  </Button>
+                )}
+              </div>
               <div className="flex items-center gap-1">
                 <HelperLink />
                 <Button
@@ -180,6 +217,29 @@ export function ConscienceNote() {
               </div>
             </div>
 
+            {searchOpen && (
+              <div className="flex items-center gap-1">
+                <Input
+                  type="search"
+                  aria-label="양심노트 검색"
+                  autoFocus
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground"
+                  title="검색 닫기"
+                  aria-label="검색 닫기"
+                  onClick={closeSearch}
+                >
+                  <X aria-hidden="true" />
+                </Button>
+              </div>
+            )}
+
             {notice && (
               <p role="status" className="-mt-3 text-center text-sm text-muted-foreground">
                 {notice}
@@ -191,12 +251,17 @@ export function ConscienceNote() {
                 <ConscienceIcon className="h-10 w-10 opacity-20" aria-hidden="true" />
                 <p className="text-sm">양심노트를 쓰면 여기에 나타납니다</p>
               </div>
+            ) : visibleNotes.length === 0 ? (
+              <p className="py-12 text-center text-sm text-muted-foreground">
+                일치하는 양심노트가 없습니다
+              </p>
             ) : (
               <ul className="flex flex-col gap-2" role="list">
-                {sortNotes(notes).map((note) => {
+                {visibleNotes.map((note) => {
                   const firstLine = note.matter.trim().split("\n")[0];
                   const date = formatNoteDate(note.date);
                   const levels = noteLevels(note);
+                  const labels = matchedFieldLabels(note, terms);
                   const hasLevel = Object.values(levels).some(
                     (level) => level !== null
                   );
@@ -208,6 +273,7 @@ export function ConscienceNote() {
                       <button
                         type="button"
                         onClick={() => {
+                          closeSearch();
                           setOpenId(note.id);
                           setJustCreated(false);
                         }}
@@ -220,6 +286,11 @@ export function ConscienceNote() {
                           {firstLine && (
                             <span className="truncate text-sm font-medium leading-snug">
                               {firstLine}
+                            </span>
+                          )}
+                          {labels.length > 0 && (
+                            <span className="truncate text-xs text-muted-foreground">
+                              {labels.join(", ")}
                             </span>
                           )}
                         </span>
