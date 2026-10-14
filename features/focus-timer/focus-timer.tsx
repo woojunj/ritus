@@ -52,6 +52,7 @@ export function FocusTimer() {
           blinking={session.blinking}
           onDismissBlink={session.dismissBlink}
           onRestart={session.start}
+          onNewSetup={session.quit}
         />
       )}
     </div>

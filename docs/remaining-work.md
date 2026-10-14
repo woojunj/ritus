@@ -14,7 +14,6 @@
 
 ## 정해야 하는 것
 
-- [ ] **종료 화면의 "새로 정한다" 경로**: 버튼 문구와 배치를 정한다. 내용은 [follow-ups/end-screen-missing-new-setup-path.md](follow-ups/end-screen-missing-new-setup-path.md)에 있다.
 - [ ] **Vercel 배포 기록**: 2026-10-12 GitHub 장애 무렵의 `main` 커밋 세 개(`d4cb934`, `349cfc2`, `78714e6`)는 배포 기록이 GitHub에 올라오지 않았다. Vercel 대시보드에서 배포됐는지 확인한다.
 
 ## 보류
