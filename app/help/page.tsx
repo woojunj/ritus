@@ -37,6 +37,8 @@ import { Markdown } from "@/components/markdown";
 import { HelperRequestCopy } from "@/features/conscience-note";
 import { SessionBar } from "@/features/focus-timer";
 
+import { buildInfoText, readLocalGit } from "./build-info";
+
 // 저장소의 매뉴얼을 그대로 보여 준다. 문서를 고치면 이 화면도 함께 바뀐다.
 const manual = await readFile(join(process.cwd(), "docs/manual.md"), "utf8");
 
@@ -106,6 +108,10 @@ const COMPONENTS: Components = {
 };
 
 export default function HelpPage() {
+  // 배포본은 빌드할 때 한 번 그려지므로 지금 시각이 곧 빌드 시각이다. 개발 서버는
+  // 열 때마다 다시 그려서, 커밋하거나 브랜치를 바꾸면 로컬 커밋 정보가 바로 바뀐다.
+  const local = process.env.VERCEL_GIT_COMMIT_SHA ? null : readLocalGit();
+  const buildInfo = buildInfoText(process.env, new Date(), local);
   return (
     <>
       <SessionBar />
@@ -121,6 +127,7 @@ export default function HelpPage() {
             </Markdown>
           </Fragment>
         ))}
+        <p className="border-t pt-6 text-center text-xs text-muted-foreground">{buildInfo}</p>
       </article>
     </>
   );
