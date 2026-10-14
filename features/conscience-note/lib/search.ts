@@ -32,3 +32,15 @@ export function matchedFieldLabels(note: ConscienceNoteItem, terms: string[]): s
     })
     .map((field) => field.label);
 }
+
+/**
+ * 켠 신호 가운데 하나라도 어느 덕목 칸에서든 고른 장이면 일치한다.
+ * 켠 신호가 없으면 모든 장이 일치한다.
+ */
+export function matchesSignals(note: ConscienceNoteItem, signals: number[]): boolean {
+  if (signals.length === 0) return true;
+  return VIRTUES.some((virtue) => {
+    const level = note.virtues[virtue.key].level;
+    return level !== null && signals.includes(level);
+  });
+}

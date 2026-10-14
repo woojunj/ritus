@@ -102,3 +102,36 @@ test("폰 너비에서 검색 칸이 열려도 가로 스크롤이 없다", asyn
   );
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test("신호 칩으로 거르고, 검색어와 함께 쓰면 두 조건을 모두 만족하는 장만 남는다", async ({ page }) => {
+  await seedNotes(page);
+  await page.getByRole("button", { name: "양심노트 검색" }).click();
+  const group = page.getByRole("group", { name: "신호로 거르기" });
+  const chip = group.getByRole("button", { name: "자찜 신호로 거르기" });
+
+  await chip.click();
+  await expect(chip).toHaveAttribute("aria-pressed", "true");
+  await expect(card(page, "약속에 늦었다")).toBeVisible();
+  await expect(card(page, "회의에서 말을 끊었다")).toHaveCount(0);
+
+  await page.getByRole("searchbox", { name: "양심노트 검색" }).fill("회의");
+  await expect(page.getByText("일치하는 양심노트가 없습니다")).toBeVisible();
+
+  await chip.click();
+  await expect(chip).toHaveAttribute("aria-pressed", "false");
+  await expect(card(page, "회의에서 말을 끊었다")).toBeVisible();
+  await expect(card(page, "약속에 늦었다")).toHaveCount(0);
+});
+
+test("닫기(×)를 누르면 신호 칩도 함께 지워진다", async ({ page }) => {
+  await seedNotes(page);
+  await page.getByRole("button", { name: "양심노트 검색" }).click();
+  await page.getByRole("group", { name: "신호로 거르기" }).getByRole("button", { name: "자찜 신호로 거르기" }).click();
+  await page.getByRole("button", { name: "검색 닫기" }).click();
+
+  await page.getByRole("button", { name: "양심노트 검색" }).click();
+  await expect(
+    page.getByRole("group", { name: "신호로 거르기" }).getByRole("button", { name: "자찜 신호로 거르기" })
+  ).toHaveAttribute("aria-pressed", "false");
+  await expect(card(page, "회의에서 말을 끊었다")).toBeVisible();
+});
