@@ -21,9 +21,10 @@ import {
   parseNotes,
   parsePastedNotes,
 } from "./lib/copy-text";
-import { COPYRIGHT_NOTICE } from "./lib/form";
+import { COPYRIGHT_NOTICE, LEVELS } from "./lib/form";
 import {
   matchedFieldLabels,
+  matchesSignals,
   noteMatches,
   searchTerms,
 } from "./lib/search";
@@ -55,6 +56,7 @@ export function ConscienceNote() {
   const [notice, setNotice] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [signals, setSignals] = useState<number[]>([]);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -69,11 +71,22 @@ export function ConscienceNote() {
   function closeSearch() {
     setSearchOpen(false);
     setQuery("");
+    setSignals([]);
+  }
+
+  function toggleSignal(level: number) {
+    setSignals((current) =>
+      current.includes(level)
+        ? current.filter((value) => value !== level)
+        : [...current, level]
+    );
   }
 
   const terms = searchTerms(query);
   const visibleNotes = searchOpen
-    ? sortNotes(notes).filter((note) => noteMatches(note, terms))
+    ? sortNotes(notes).filter(
+        (note) => noteMatches(note, terms) && matchesSignals(note, signals)
+      )
     : sortNotes(notes);
 
   function handleCreate() {
@@ -237,6 +250,28 @@ export function ConscienceNote() {
                 >
                   <X aria-hidden="true" />
                 </Button>
+              </div>
+            )}
+
+            {searchOpen && (
+              <div role="group" aria-label="신호로 거르기" className="flex flex-wrap items-center gap-2">
+                {LEVELS.map((name, level) => {
+                  const pressed = signals.includes(level);
+                  return (
+                    <Button
+                      key={name}
+                      type="button"
+                      size="sm"
+                      variant={pressed ? "default" : "outline"}
+                      aria-pressed={pressed}
+                      aria-label={`${name} 신호로 거르기`}
+                      title={name}
+                      onClick={() => toggleSignal(level)}
+                    >
+                      <span aria-hidden="true">{"●".repeat(level + 1)}</span>
+                    </Button>
+                  );
+                })}
               </div>
             )}
 

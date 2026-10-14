@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { createNote, type ConscienceNoteItem } from "./storage";
-import { matchedFieldLabels, noteMatches } from "./search";
+import { matchedFieldLabels, matchesSignals, noteMatches } from "./search";
 
 function sample(overrides: Partial<ConscienceNoteItem> = {}): ConscienceNoteItem {
   return {
@@ -58,5 +58,23 @@ describe("일치한 칸 이름", () => {
 
   test("낱말이 없으면 칸 이름을 돌려주지 않는다", () => {
     expect(matchedFieldLabels(sample(), [])).toEqual([]);
+  });
+});
+
+describe("신호 칩으로 거르기", () => {
+  test("켠 신호가 없으면 모든 장이 일치한다", () => {
+    expect(matchesSignals(sample(), [])).toBe(true);
+  });
+
+  test("켠 신호 가운데 하나라도 고른 칸이 있으면 일치한다", () => {
+    // 몰입 칸이 자찜(2)이다.
+    expect(matchesSignals(sample(), [2])).toBe(true);
+    expect(matchesSignals(sample(), [0, 2])).toBe(true);
+    expect(matchesSignals(sample(), [0, 1])).toBe(false);
+  });
+
+  test("신호를 고르지 않은 장은 신호 칩에 걸리지 않는다", () => {
+    const empty = sample({ virtues: { ...createNote().virtues } });
+    expect(matchesSignals(empty, [0, 1, 2, 3])).toBe(false);
   });
 });
