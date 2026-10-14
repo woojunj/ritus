@@ -1,14 +1,9 @@
+import { containsAllTerms } from "@/lib/search";
+
 import { VIRTUES } from "./form";
 import type { ConscienceNoteItem } from "./storage";
 
-/** 검색어를 띄어쓰기로 나눈 낱말 목록. 대소문자는 구분하지 않는다. */
-export function searchTerms(query: string): string[] {
-  return query
-    .trim()
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((term) => term.length > 0);
-}
+export { searchTerms } from "@/lib/search";
 
 // 검색 대상 칸과 그 이름. 사안, 여섯 덕목의 답, 최종 결론이다.
 function fields(note: ConscienceNoteItem): { label: string; text: string }[] {
@@ -21,12 +16,10 @@ function fields(note: ConscienceNoteItem): { label: string; text: string }[] {
 
 /** 낱말이 모두 장 안 어딘가에 들어 있으면 일치한다. 낱말이 없으면 모든 장이 일치한다. */
 export function noteMatches(note: ConscienceNoteItem, terms: string[]): boolean {
-  if (terms.length === 0) return true;
   const text = fields(note)
     .map((field) => field.text)
-    .join("\n")
-    .toLowerCase();
-  return terms.every((term) => text.includes(term.toLowerCase()));
+    .join("\n");
+  return containsAllTerms(text, terms);
 }
 
 /** 낱말 가운데 하나라도 든 칸의 이름. 카드에 "사안, 몰입"처럼 보여 준다. */
