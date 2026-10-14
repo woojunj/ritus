@@ -265,10 +265,9 @@ export function ConscienceNote() {
                       variant={pressed ? "default" : "outline"}
                       aria-pressed={pressed}
                       aria-label={`${name} 신호로 거르기`}
-                      title={name}
                       onClick={() => toggleSignal(level)}
                     >
-                      <span aria-hidden="true">{"●".repeat(level + 1)}</span>
+                      {name}
                     </Button>
                   );
                 })}
