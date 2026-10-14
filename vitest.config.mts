@@ -18,7 +18,6 @@ export default defineConfig({
       "node_modules/**",
       ".next/**",
       "e2e/**",
-      "e2e-offline/**",
       ".claude/worktrees/**",
     ],
   },
