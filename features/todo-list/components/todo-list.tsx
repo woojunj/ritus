@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useSyncExternalStore } from "react";
-import { Plus, Timer, Trash2, Check, X } from "lucide-react";
+import { Plus, Search, Timer, Trash2, Check, X } from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -18,6 +18,7 @@ import { CopyButton } from "@/components/copy-button";
 import { DownloadButton } from "@/components/download-button";
 import { Input } from "@/components/ui/input";
 import { UploadButton } from "@/components/upload-button";
+import { containsAllTerms, searchTerms } from "@/lib/search";
 
 import { parseTodos, todosFile, todosToCsv } from "../lib/csv";
 import {
@@ -47,6 +48,8 @@ export function TodoList({
   const [draft, setDraft] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const [pendingStart, setPendingStart] = useState<TodoItem | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -80,6 +83,17 @@ export function TodoList({
       setIsEditing(false);
     }
   }
+
+  // 검색은 목록에서만 쓴다. 할 일 카드를 눌러 세션을 시작하면 검색 칸과 검색어를 지운다.
+  function closeSearch() {
+    setSearchOpen(false);
+    setQuery("");
+  }
+
+  const terms = searchTerms(query);
+  const visibleItems = searchOpen
+    ? items.filter((item) => containsAllTerms(item.title, terms))
+    : items;
 
   return (
     <div className="flex min-h-full flex-col">
@@ -136,9 +150,23 @@ export function TodoList({
             <div className="flex flex-col gap-2">
               {/* 목록 상단 정보 및 편집 토글 */}
               <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-medium text-muted-foreground">
-                  할 일 {items.length}개
-                </span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    할 일 {items.length}개
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 text-muted-foreground hover:text-foreground"
+                    title="할 일 검색"
+                    aria-expanded={searchOpen}
+                    onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
+                  >
+                    <Search aria-hidden="true" />
+                    <span className="sr-only">할 일 검색</span>
+                  </Button>
+                </div>
                 <div className="flex items-center gap-2">
                   {!isEditing && (
                     <span className="text-xs text-muted-foreground/60 hidden sm:inline">
@@ -174,9 +202,37 @@ export function TodoList({
                 </div>
               </div>
 
-              {/* 할 일 목록 */}
+              {searchOpen && (
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="search"
+                    aria-label="할 일 검색"
+                    autoFocus
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground"
+                    title="검색 닫기"
+                    aria-label="검색 닫기"
+                    onClick={closeSearch}
+                  >
+                    <X aria-hidden="true" />
+                  </Button>
+                </div>
+              )}
+
+              {visibleItems.length === 0 ? (
+                <p className="py-12 text-center text-sm text-muted-foreground">
+                  일치하는 할 일이 없습니다
+                </p>
+              ) : (
+              /* 할 일 목록 */
               <ul className="flex flex-col gap-2" role="list">
-                {items.map((item) => {
+                {visibleItems.map((item) => {
                   const isConfirmingDelete = confirmDeleteId === item.id;
 
                   return (
@@ -192,6 +248,7 @@ export function TodoList({
                           if (shouldConfirmStart?.(item)) {
                             setPendingStart(item);
                           } else {
+                            closeSearch();
                             onStartTimer(item);
                           }
                         }}
@@ -260,6 +317,7 @@ export function TodoList({
                   );
                 })}
               </ul>
+              )}
             </div>
           )}
         </div>
@@ -281,7 +339,10 @@ export function TodoList({
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (pendingStart) onStartTimer(pendingStart);
+                if (pendingStart) {
+                  closeSearch();
+                  onStartTimer(pendingStart);
+                }
                 setPendingStart(null);
               }}
             >

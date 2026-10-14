@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { createNote, type ConscienceNoteItem } from "./storage";
-import { matchedFieldLabels, noteMatches, searchTerms } from "./search";
+import { matchedFieldLabels, noteMatches } from "./search";
 
 function sample(overrides: Partial<ConscienceNoteItem> = {}): ConscienceNoteItem {
   return {
@@ -16,17 +16,6 @@ function sample(overrides: Partial<ConscienceNoteItem> = {}): ConscienceNoteItem
     ...overrides,
   };
 }
-
-describe("검색어 나누기", () => {
-  test("띄어쓰기로 나누고 빈 낱말은 버린다", () => {
-    expect(searchTerms("  약속   늦 ")).toEqual(["약속", "늦"]);
-    expect(searchTerms("   ")).toEqual([]);
-  });
-
-  test("영문은 대소문자를 구분하지 않도록 소문자로 맞춘다", () => {
-    expect(searchTerms("Hello WORLD")).toEqual(["hello", "world"]);
-  });
-});
 
 describe("일치 규칙", () => {
   test("입력한 글자가 사안, 덕목 답, 최종 결론 어디에든 있으면 일치한다", () => {
