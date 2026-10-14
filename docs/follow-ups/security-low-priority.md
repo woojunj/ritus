@@ -3,4 +3,4 @@
 2026-10-13 보안 점검에서 찾았지만 지금 고치지 않은 것들이다. 모두 실행해서 재현하지는 않았다.
 
 - **CSV 수식 주입**: [features/todo-list/lib/csv.ts](../../features/todo-list/lib/csv.ts)의 `csvCell`은 `=`, `+`, `-`, `@`로 시작하는 제목을 그대로 내보낸다. 엑셀에서 열면 수식으로 실행될 수 있다. 다음 단계: 이런 칸 앞에 `'`를 붙이고, 불러올 때 떼어 낸다.
-- **스크립트를 막는 CSP 없음**: `frame-ancestors`, `nosniff`, `Referrer-Policy`는 `next.config.ts`에 두었다. `script-src`를 막는 CSP는 요청마다 nonce가 필요해 모든 화면이 동적 렌더링으로 바뀌고, 서비스 워커의 오프라인 보관과 맞는지 다시 확인해야 해서 두지 않았다. 지금은 HTML을 그리는 곳이 없어 위험이 낮다. 다음 단계: 남이 쓴 글을 보여 주는 기능이 생기면 다시 검토한다.
+- **스크립트를 막는 CSP 없음**: `frame-ancestors`, `X-Frame-Options`, `nosniff`, `Referrer-Policy`는 `next.config.ts`에 두었다. `script-src`를 막는 CSP는 요청마다 nonce가 필요해 모든 화면이 동적 렌더링으로 바뀌고, 서비스 워커의 오프라인 보관과 맞는지 다시 확인해야 해서 두지 않았다. 지금은 HTML을 그리는 곳이 없어 위험이 낮다. 다음 단계: 남이 쓴 글을 보여 주는 기능이 생기면 다시 검토한다.
