@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
         headers: [
           // 다른 사이트가 ritus를 틀 안에 넣지 못하게 한다.
           { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+          // frame-ancestors를 이해하지 못하는 옛 브라우저를 위해 같은 뜻을 함께 둔다.
+          { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         ],
