@@ -56,6 +56,32 @@ test("설정부터 종료·재시작까지 세션 흐름이 이어진다", async
   await expect(page.getByText("결제 모듈 리팩터링")).toBeVisible();
 });
 
+test("종료 화면의 새로 정하기로 설정 화면에 돌아가 제목과 시간을 바꿔 시작할 수 있다", async ({
+  page,
+}) => {
+  await page.clock.install({ time: CLOCK_START });
+  await page.goto("/");
+
+  await page.getByLabel("세션 제목").fill("결제 모듈 리팩터링");
+  await page.getByLabel("시간(분)").fill("1");
+  await page.clock.pauseAt(SESSION_START);
+  await page.getByRole("button", { name: "시작" }).click();
+  await page.clock.fastForward(60_000);
+
+  const endScreen = page.getByTestId("end-screen");
+  await expect(endScreen).toBeVisible();
+  await endScreen.getByRole("button", { name: "새로 정하기" }).click();
+
+  await expect(endScreen).toHaveCount(0);
+  await expect(page.getByLabel("세션 제목")).toHaveValue("결제 모듈 리팩터링");
+  await page.getByLabel("세션 제목").fill("다음 글");
+  await page.getByLabel("시간(분)").fill("2");
+  await page.getByRole("button", { name: "시작" }).click();
+
+  await expect(page.getByRole("timer")).toHaveText("02:00");
+  await expect(page.getByText("다음 글")).toBeVisible();
+});
+
 test("세션 도중 그만두면 메시지 없이 처음 화면으로 돌아간다", async ({
   page,
 }) => {
