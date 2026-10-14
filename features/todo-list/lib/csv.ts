@@ -7,11 +7,25 @@ function csvCell(value: string): string {
   return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
+// 엑셀은 =, +, -, @로 시작하는 칸을 수식으로 실행할 수 있다. 앞에 '를 붙여 글로 두고,
+// 앞에 '가 여러 개 붙은 경우도 같은 방식으로 표시해 되돌릴 때 헷갈리지 않게 한다.
+const FORMULA_START = /^'*[=+\-@]/;
+const GUARDED = /^'(?='*[=+\-@])/;
+
+function guardFormula(title: string): string {
+  return FORMULA_START.test(title) ? `'${title}` : title;
+}
+
+// 내보낼 때 붙인 '만 뗀다. 예전에 내려받은 파일은 '가 없으므로 그대로 읽힌다.
+function unguardFormula(cell: string): string {
+  return GUARDED.test(cell) ? cell.slice(1) : cell;
+}
+
 /** 할 일 목록을 화면에 보이는 순서대로 "할 일,완주 횟수" CSV로 만든다. */
 export function todosToCsv(items: TodoItem[]): string {
   return [
     "할 일,완주 횟수",
-    ...items.map((item) => `${csvCell(item.title)},${item.completionCount}`),
+    ...items.map((item) => `${csvCell(guardFormula(item.title))},${item.completionCount}`),
   ].join("\n");
 }
 
@@ -72,7 +86,7 @@ export function parseTodos(text: string, existing: TodoItem[]): TodoItem[] {
   const now = Date.now();
   const items: TodoItem[] = [];
   for (const [rawTitle = "", rawCount = ""] of parseCsv(text.replace(/^\uFEFF/, ""))) {
-    const title = rawTitle.trim();
+    const title = unguardFormula(rawTitle.trim());
     if (!title || titles.has(title)) continue;
     if (items.length === 0 && title === "할 일" && rawCount.trim() === "완주 횟수") continue;
     titles.add(title);
