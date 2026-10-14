@@ -127,4 +127,11 @@
   html {
     @apply font-sans;
   }
+  /* 크게 보기. 글자, 아이콘, 여백이 모두 rem을 따르므로 함께 커진다. */
+  html[data-text-size="large"] {
+    font-size: 125%;
+  }
+  html[data-text-size="xlarge"] {
+    font-size: 150%;
+  }
 }
