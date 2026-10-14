@@ -17,10 +17,6 @@
 - [ ] **종료 화면의 "새로 정한다" 경로**: 버튼 문구와 배치를 정한다. 내용은 [follow-ups/end-screen-missing-new-setup-path.md](follow-ups/end-screen-missing-new-setup-path.md)에 있다.
 - [ ] **Vercel 배포 기록**: 2026-10-12 GitHub 장애 무렵의 `main` 커밋 세 개(`d4cb934`, `349cfc2`, `78714e6`)는 배포 기록이 GitHub에 올라오지 않았다. Vercel 대시보드에서 배포됐는지 확인한다.
 
-## 바로 할 수 있는 것
-
-- [ ] **전체 테스트의 시간 초과**: `bun run test`와 `bun run test:e2e`를 전체로 돌리면 돌릴 때마다 다른 테스트 1–2개가 시간 초과로 실패하고, 따로 돌리면 통과한다. 원인은 확인하지 않았다.
-
 ## 보류
 
 - **아이패드 소리 (PR #28)**: 2026-10-13에 보류했다. 실기기로 확인할 수 있을 때 다시 본다. 문제는 두 가지다.
