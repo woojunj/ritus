@@ -8,6 +8,7 @@ import {
   type SVGProps,
 } from "react";
 import {
+  ALargeSmall,
   ArrowLeftRight,
   Check,
   CircleQuestionMark,
@@ -56,6 +57,7 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   도움말: CircleQuestionMark,
   "전체 백업": DatabaseBackup,
   테마: Sun,
+  "크게 보기": ALargeSmall,
   소리: Volume2,
   재생: Play,
   일시정지: Pause,

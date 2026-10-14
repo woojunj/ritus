@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { ConscienceIcon } from "@/components/conscience-icon";
+import { TextSizeToggle } from "@/components/text-size-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MuteToggle } from "@/features/focus-timer";
 import { cn } from "@/lib/utils";
@@ -40,7 +41,9 @@ export function AppHeader() {
   const pathname = usePathname() ?? "/";
 
   return (
-    <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-b px-3 py-2 sm:px-4">
+    // 폭이 넉넉하면 이름, 화면 아이콘, 설정 아이콘을 한 줄에 펼친다. 폰 너비나 크게 보기처럼
+    // 한 줄에 다 들어가지 않으면 화면 아이콘 아래로 설정 아이콘을 넘겨 가운데에 둔다.
+    <header className="flex flex-wrap items-center justify-center gap-1 border-b px-3 py-2 sm:px-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-2">
       {/* 폰 너비에서는 아이콘이 한 줄에 들어오도록 이름을 감춘다. */}
       <span className="hidden font-heading text-lg font-semibold tracking-tight sm:inline">
         ritus
@@ -67,7 +70,7 @@ export function AppHeader() {
           );
         })}
       </nav>
-      <div className="flex items-center justify-end gap-1">
+      <div className="flex items-center gap-1 lg:justify-end">
         <Link
           href="/help"
           aria-label="도움말"
@@ -82,6 +85,7 @@ export function AppHeader() {
         </Link>
         <BackupButton />
         <ThemeToggle />
+        <TextSizeToggle />
         <MuteToggle />
       </div>
     </header>
