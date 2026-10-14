@@ -11,6 +11,8 @@ export default defineConfig({
   testDir: "./e2e",
   testMatch: /.*\.spec\.ts$/,
   fullyParallel: true,
+  // 개발 서버가 화면을 처음 열 때마다 컴파일해서 기본 30초로는 모자란다.
+  timeout: 60_000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: [["html", { open: "never" }]],

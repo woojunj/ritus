@@ -1,11 +1,17 @@
 import { expect, test } from "@playwright/test";
 
+// 시계를 멈춘 채 세션을 시작해, 테스트가 느리게 돌아도 fastForward로 보낸
+// 시간만 흐르게 한다. pauseAt은 앞으로만 갈 수 있어 설치 시각보다 뒤로 둔다.
+const CLOCK_START = new Date("2026-01-01T09:00:00");
+const SESSION_START = new Date("2026-01-01T10:00:00");
+
 test("설정부터 종료·재시작까지 세션 흐름이 이어진다", async ({ page }) => {
-  await page.clock.install();
+  await page.clock.install({ time: CLOCK_START });
   await page.goto("/");
 
   await page.getByLabel("세션 제목").fill("결제 모듈 리팩터링");
   await page.getByLabel("시간(분)").fill("1");
+  await page.clock.pauseAt(SESSION_START);
   await page.getByRole("button", { name: "시작" }).click();
 
   const clock = page.getByRole("timer");
@@ -70,7 +76,7 @@ test("세션 도중 그만두면 메시지 없이 처음 화면으로 돌아간�
 test("두 구간 반복이 총 시간을 넘겨 진행 중인 사이클을 채우고 끝난다", async ({
   page,
 }) => {
-  await page.clock.install();
+  await page.clock.install({ time: CLOCK_START });
   await page.goto("/");
 
   await page.getByLabel("시간(분)").fill("1");
@@ -79,6 +85,7 @@ test("두 구간 반복이 총 시간을 넘겨 진행 중인 사이클을 채�
   const fields = page.getByTestId("interval-fields-wide");
   await fields.getByLabel("첫 구간(초)").fill("30");
   await fields.getByLabel("두 번째 구간(초)").fill("20");
+  await page.clock.pauseAt(SESSION_START);
   await page.getByRole("button", { name: "시작" }).click();
 
   const indicator = page.getByTestId("slice-indicator");
