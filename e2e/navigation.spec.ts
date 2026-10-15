@@ -73,7 +73,7 @@ test("세션 중에 다른 할 일을 누르면 확인을 받는다", async ({ p
   await expect(page.getByRole("button", { name: "시작" })).toBeVisible();
 });
 
-test("폰 너비에서 네 화면의 헤더가 가로 스크롤 없이 한 줄에 들어온다", async ({
+test("폰 너비에서 네 화면의 헤더 아이콘이 모두 화면 안에 있고 가로 스크롤이 없다", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 360, height: 740 });
@@ -84,7 +84,7 @@ test("폰 너비에서 네 화면의 헤더가 가로 스크롤 없이 한 줄�
     await expect(header.getByRole("button", { name: "소리 끄기" })).toBeInViewport();
     await expect(header.getByRole("button", { name: "전체 백업" })).toBeInViewport();
     await expect(header.getByRole("link", { name: "도움말" })).toBeInViewport();
-    expect((await header.boundingBox())?.height).toBeLessThan(60);
+    // 글자를 크게 보면 헤더가 두 줄로 넘어갈 수 있다(크게 보기, #72). 줄 수는 확인하지 않는다.
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth
     );
