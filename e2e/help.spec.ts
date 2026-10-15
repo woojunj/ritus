@@ -20,7 +20,8 @@ test("도움말 아이콘을 누르면 매뉴얼이 서식대로 보이고 문�
 
   const backup = page.getByRole("heading", { level: 2, name: "전체 백업" });
   await expect(backup).not.toBeInViewport();
-  await page.getByRole("article").getByRole("link", { name: "전체 백업" }).click();
+  // 맨 위 "먼저 알아 둘 것" 요약의 링크를 누른다. 본문에도 같은 이름의 링크가 있다.
+  await page.getByRole("article").getByRole("link", { name: "전체 백업" }).first().click();
   await expect(backup).toBeInViewport();
 });
 
