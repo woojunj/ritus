@@ -17,6 +17,10 @@ export function FocusTimer() {
   // 설정 화면에서 아무 데도 포커스가 없을 때 Space를 누르면 시작한다. 엔터는 버튼과
   // 글 칸에서 이미 다른 뜻이라 쓰지 않는다.
   useKeyShortcut(" ", phase === "setup", session.start, { onlyWhenNothingFocused: true });
+  // 세션 중에도 Space로 일시정지와 재개를 한다. 버튼에 포커스가 있을 때는 그 버튼이 받는다.
+  useKeyShortcut(" ", phase === "running" || phase === "paused", session.togglePause, {
+    onlyWhenNothingFocused: true,
+  });
 
   return (
     <div className="flex flex-1 items-center justify-center p-6 sm:p-16">
