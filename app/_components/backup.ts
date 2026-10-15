@@ -4,7 +4,15 @@ import {
   saveNotes,
   type ConscienceNoteItem,
 } from "@/features/conscience-note";
-import { getMemoSnapshot, saveMemo, type MemoDoc } from "@/features/memo-pad";
+import {
+  getLibrarySnapshot,
+  getMemoSnapshot,
+  normalizeLibrary,
+  saveLibrary,
+  saveMemo,
+  type MemoDoc,
+  type MemoLibrary,
+} from "@/features/memo-pad";
 import {
   getTodosSnapshot,
   normalizeTodo,
@@ -17,6 +25,8 @@ import { dateStamp, type TextFile } from "@/lib/download";
 export type Backup = {
   conscienceNotes: ConscienceNoteItem[];
   memo: MemoDoc;
+  /** 저장한 메모 목록과 임시 보관본. 예전 백업에는 없어서 빈 목록으로 읽는다. */
+  memoLibrary: MemoLibrary;
   todos: TodoItem[];
 };
 
@@ -28,6 +38,7 @@ export function currentBackup(): Backup {
   return {
     conscienceNotes: getNotesSnapshot(),
     memo: getMemoSnapshot(),
+    memoLibrary: getLibrarySnapshot(),
     todos: getTodosSnapshot(),
   };
 }
@@ -84,7 +95,7 @@ export function parseBackup(text: string): { backup: Backup; issues: BackupIssue
     return null;
   }
   if (typeof data !== "object" || data === null) return null;
-  const { app, conscienceNotes, memo, todos } = data as Record<string, unknown>;
+  const { app, conscienceNotes, memo, memoLibrary, todos } = data as Record<string, unknown>;
   if (app !== APP) return null;
   const doc = (typeof memo === "object" && memo !== null ? memo : {}) as Partial<MemoDoc>;
   const notes = normalizeAll(conscienceNotes, normalizeNote);
@@ -96,6 +107,7 @@ export function parseBackup(text: string): { backup: Backup; issues: BackupIssue
         text: typeof doc.text === "string" ? doc.text : "",
         format: doc.format === "md" ? "md" : "txt",
       },
+      memoLibrary: normalizeLibrary(memoLibrary),
       todos: todoItems.items,
     },
     issues: {
@@ -146,6 +158,7 @@ export function backupIssueSummary(issues: BackupIssues): string | null {
 export function restoreBackup(backup: Backup): void {
   saveNotes(backup.conscienceNotes);
   saveMemo(backup.memo);
+  saveLibrary(backup.memoLibrary);
   saveItems(backup.todos);
 }
 
