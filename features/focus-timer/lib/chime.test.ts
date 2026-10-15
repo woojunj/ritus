@@ -71,6 +71,41 @@ describe("playChime", () => {
     expect(resume).toHaveBeenCalledTimes(1);
   });
 
+  test("다른 곳에 다녀온 뒤 화면을 누르면 컨텍스트를 새로 열어 그것으로 소리를 낸다", () => {
+    const first = createFakeAudioContext();
+    const second = createFakeAudioContext();
+    Object.assign(first.ctx, { state: "running" });
+    Object.assign(second.ctx, { state: "running" });
+    const Ctor = vi
+      .fn()
+      .mockImplementationOnce(function () {
+        return first.ctx;
+      })
+      .mockImplementationOnce(function () {
+        return second.ctx;
+      });
+    const setVisibility = (state: string) => {
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        value: state,
+      });
+      document.dispatchEvent(new Event("visibilitychange"));
+    };
+
+    playChime("start", { muted: false, audioContextCtor: Ctor as never });
+    document.dispatchEvent(new Event("click"));
+    expect(Ctor).toHaveBeenCalledTimes(1);
+
+    setVisibility("hidden");
+    setVisibility("visible");
+    document.dispatchEvent(new Event("click"));
+    expect(first.ctx.close).toHaveBeenCalledTimes(1);
+    expect(Ctor).toHaveBeenCalledTimes(2);
+
+    playChime("end", { muted: false, audioContextCtor: Ctor as never });
+    expect(second.oscillator.start).toHaveBeenCalledTimes(1);
+  });
+
   test("AudioContext를 쓸 수 없으면 조용히 아무 일도 하지 않는다", () => {
     expect(() =>
       playChime("start", { muted: false, audioContextCtor: undefined })
