@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { UploadButton } from "@/components/upload-button";
 import { searchTerms } from "@/lib/search";
 import { useMounted } from "@/lib/use-mounted";
+import { useSlashKey } from "@/lib/use-slash-key";
 import { cn } from "@/lib/utils";
 
 import { SavedMemoList } from "./components/saved-memo-list";
@@ -77,6 +78,7 @@ export function MemoPad() {
   // 저장 목록의 검색 칸과 검색어. 목록을 떠나면 함께 지운다.
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   // 불러오기 확인을 기다리는 저장된 메모와, 지우기 확인을 기다리는 메모의 id.
   const [pendingLoad, setPendingLoad] = useState<SavedMemo | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
@@ -114,6 +116,24 @@ export function MemoPad() {
     showNotice("저장했습니다");
   }
 
+  // Ctrl+S(맥은 Cmd+S)는 브라우저의 페이지 저장 대신 이 저장을 한다. 글 칸에 커서가 있어도 동작한다.
+  // 키는 글자가 아닌 위치(code)로 본다. 한글 입력 상태에서도 같은 키가 잡히도록 하기 위해서다.
+  const saveRef = useRef(handleSave);
+  useEffect(() => {
+    saveRef.current = handleSave;
+  });
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
+      if (event.code !== "KeyS") return;
+      event.preventDefault();
+      saveRef.current();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   // 저장한 메모를 편집 자리에 올린다. 지금 글이 있으면 임시 보관 칸에 먼저 넣는다.
   // 임시 보관본을 불러오는 경우에도 지금 글과 바꿔 담으므로 어느 쪽도 사라지지 않는다.
   function closeSearch() {
@@ -129,6 +149,13 @@ export function MemoPad() {
   const terms = searchTerms(query);
   const shownLibrary = searchOpen ? filterLibrary(library, terms) : library;
   const hasSaved = library.saved.length > 0 || library.temp !== null;
+
+  // "/"를 누르면 저장 목록의 검색 칸을 열고 그 칸에 커서를 둔다. 목록을 보는 동안에만 쓴다.
+  function openSearch() {
+    setSearchOpen(true);
+    searchRef.current?.focus();
+  }
+  useSlashKey(listOpen && hasSaved, openSearch);
 
   function applyLoad(memo: SavedMemo, stashed: MemoLibrary) {
     saveLibrary(stashed);
@@ -331,6 +358,7 @@ export function MemoPad() {
               {searchOpen ? (
                 <>
                   <Input
+                    ref={searchRef}
                     type="search"
                     aria-label="저장한 메모 검색"
                     autoFocus

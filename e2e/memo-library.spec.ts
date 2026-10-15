@@ -72,3 +72,40 @@ test("저장한 메모를 낱말로 찾고, 목록을 떠나면 검색어가 지
   await expect(page.getByRole("searchbox", { name: "저장한 메모 검색" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: '"회의 메모" 불러오기' })).toBeVisible();
 });
+
+test("Ctrl+S를 누르면 글 칸에 커서가 있어도 지금 글이 저장 목록에 저장된다", async ({ page }) => {
+  await page.goto("/memo");
+  const body = page.getByLabel("메모 본문");
+  await body.fill("단축키로 저장");
+  await body.focus();
+  await page.keyboard.press("Control+s");
+
+  await expect(page.getByText("저장했습니다")).toBeVisible();
+  await page.getByRole("button", { name: "저장한 메모 목록" }).click();
+  await expect(page.getByRole("button", { name: '"단축키로 저장" 불러오기' })).toBeVisible();
+});
+
+test("목록을 보는 중에 /를 누르면 저장한 메모 검색 칸이 열린다", async ({ page }) => {
+  await page.goto("/memo");
+  const body = page.getByLabel("메모 본문");
+
+  await body.fill("약속에 늦었다");
+  await page.getByRole("button", { name: "메모 저장" }).click();
+  await body.fill("회의 메모");
+  await page.getByRole("button", { name: "메모 저장" }).click();
+
+  await page.getByRole("button", { name: "저장한 메모 목록" }).click();
+  await page.getByRole("button", { name: '"회의 메모" 불러오기' }).waitFor();
+  await page.locator("body").focus();
+  await page.keyboard.press("/");
+
+  const search = page.getByRole("searchbox", { name: "저장한 메모 검색" });
+  await expect(search).toBeFocused();
+  await page.keyboard.type("약속");
+  await expect(page.getByRole("button", { name: '"약속에 늦었다" 불러오기' })).toBeVisible();
+  await expect(page.getByRole("button", { name: '"회의 메모" 불러오기' })).toHaveCount(0);
+
+  // 검색 칸 안에서는 "/"가 글자로 쓰이고, 검색 칸을 다시 열지 않는다.
+  await page.keyboard.type("/");
+  await expect(search).toHaveValue("약속/");
+});

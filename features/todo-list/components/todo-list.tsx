@@ -19,6 +19,7 @@ import { DownloadButton } from "@/components/download-button";
 import { Input } from "@/components/ui/input";
 import { UploadButton } from "@/components/upload-button";
 import { containsAllTerms, searchTerms } from "@/lib/search";
+import { useSlashKey } from "@/lib/use-slash-key";
 
 import { parseTodos, todosFile, todosToCsv } from "../lib/csv";
 import {
@@ -52,6 +53,7 @@ export function TodoList({
   const [query, setQuery] = useState("");
   const [pendingStart, setPendingStart] = useState<TodoItem | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   function handleAdd() {
     const trimmed = draft.trim();
@@ -89,6 +91,13 @@ export function TodoList({
     setSearchOpen(false);
     setQuery("");
   }
+
+  // "/"를 누르면 검색 칸을 열고 그 칸에 커서를 둔다. 이미 열려 있으면 칸으로 옮긴다.
+  function openSearch() {
+    setSearchOpen(true);
+    searchRef.current?.focus();
+  }
+  useSlashKey(true, openSearch);
 
   const terms = searchTerms(query);
   const visibleItems = searchOpen
@@ -205,6 +214,7 @@ export function TodoList({
               {searchOpen && (
                 <div className="flex items-center gap-1">
                   <Input
+                    ref={searchRef}
                     type="search"
                     aria-label="할 일 검색"
                     autoFocus

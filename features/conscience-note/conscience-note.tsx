@@ -8,6 +8,7 @@ import { ConscienceIcon } from "@/components/conscience-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UploadButton } from "@/components/upload-button";
+import { useSlashKey } from "@/lib/use-slash-key";
 
 import { DeleteNoteDialog } from "./components/delete-note-dialog";
 import { HelperLink } from "./components/helper-link";
@@ -57,6 +58,7 @@ export function ConscienceNote() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [signals, setSignals] = useState<number[]>([]);
+  const searchRef = useRef<HTMLInputElement>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -73,6 +75,13 @@ export function ConscienceNote() {
     setQuery("");
     setSignals([]);
   }
+
+  // "/"를 누르면 목록에서 검색 칸을 열고 그 칸에 커서를 둔다. 한 장을 연 동안에는 쓰지 않는다.
+  function openSearch() {
+    setSearchOpen(true);
+    searchRef.current?.focus();
+  }
+  useSlashKey(notes.length > 0 && !openNote, openSearch);
 
   function toggleSignal(level: number) {
     setSignals((current) =>
@@ -233,6 +242,7 @@ export function ConscienceNote() {
             {searchOpen && (
               <div className="flex items-center gap-1">
                 <Input
+                  ref={searchRef}
                   type="search"
                   aria-label="양심노트 검색"
                   autoFocus
