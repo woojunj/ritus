@@ -1,3 +1,5 @@
+import { containsAllTerms } from "@/lib/search";
+
 import type { MemoDoc, MemoFormat } from "./storage";
 
 /** 저장 목록에 한 장으로 남긴 메모. */
@@ -74,4 +76,14 @@ export function normalizeLibrary(value: unknown): MemoLibrary {
  */
 export function afterLoad(library: MemoLibrary, current: MemoDoc, id: string, now: number): MemoLibrary {
   return current.text.trim() ? stashTemp(library, current, id, now) : library;
+}
+
+/** 낱말을 모두 포함한 저장 메모와 임시 보관본만 남긴 목록. 낱말이 없으면 그대로다. */
+export function filterLibrary(library: MemoLibrary, terms: string[]): MemoLibrary {
+  if (terms.length === 0) return library;
+  const matches = (memo: SavedMemo) => containsAllTerms(memo.text, terms);
+  return {
+    saved: library.saved.filter(matches),
+    temp: library.temp && matches(library.temp) ? library.temp : null,
+  };
 }
