@@ -1,5 +1,7 @@
 "use client";
 
+import { useKeyShortcut } from "@/lib/use-key-shortcut";
+
 import { sliceAt } from "./lib/cycle";
 import { EndScreen } from "./components/end-screen";
 import { RunningScreen } from "./components/running-screen";
@@ -11,6 +13,10 @@ import { useFocusSession } from "./focus-session";
 export function FocusTimer() {
   const session = useFocusSession();
   const { phase } = session;
+
+  // 설정 화면에서 아무 데도 포커스가 없을 때 Space를 누르면 시작한다. 엔터는 버튼과
+  // 글 칸에서 이미 다른 뜻이라 쓰지 않는다.
+  useKeyShortcut(" ", phase === "setup", session.start, { onlyWhenNothingFocused: true });
 
   return (
     <div className="flex flex-1 items-center justify-center p-6 sm:p-16">

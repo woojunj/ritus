@@ -8,7 +8,7 @@ import { ConscienceIcon } from "@/components/conscience-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UploadButton } from "@/components/upload-button";
-import { useSlashKey } from "@/lib/use-slash-key";
+import { useKeyShortcut } from "@/lib/use-key-shortcut";
 
 import { DeleteNoteDialog } from "./components/delete-note-dialog";
 import { HelperLink } from "./components/helper-link";
@@ -81,7 +81,7 @@ export function ConscienceNote() {
     setSearchOpen(true);
     searchRef.current?.focus();
   }
-  useSlashKey(notes.length > 0 && !openNote, openSearch);
+  useKeyShortcut("/", notes.length > 0 && !openNote, openSearch);
 
   function toggleSignal(level: number) {
     setSignals((current) =>

@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { UploadButton } from "@/components/upload-button";
 import { searchTerms } from "@/lib/search";
 import { useMounted } from "@/lib/use-mounted";
-import { useSlashKey } from "@/lib/use-slash-key";
+import { useKeyShortcut } from "@/lib/use-key-shortcut";
 import { cn } from "@/lib/utils";
 
 import { SavedMemoList } from "./components/saved-memo-list";
@@ -155,7 +155,7 @@ export function MemoPad() {
     setSearchOpen(true);
     searchRef.current?.focus();
   }
-  useSlashKey(listOpen && hasSaved, openSearch);
+  useKeyShortcut("/", listOpen && hasSaved, openSearch);
 
   function applyLoad(memo: SavedMemo, stashed: MemoLibrary) {
     saveLibrary(stashed);

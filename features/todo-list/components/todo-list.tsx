@@ -19,7 +19,7 @@ import { DownloadButton } from "@/components/download-button";
 import { Input } from "@/components/ui/input";
 import { UploadButton } from "@/components/upload-button";
 import { containsAllTerms, searchTerms } from "@/lib/search";
-import { useSlashKey } from "@/lib/use-slash-key";
+import { useKeyShortcut } from "@/lib/use-key-shortcut";
 
 import { parseTodos, todosFile, todosToCsv } from "../lib/csv";
 import {
@@ -97,7 +97,7 @@ export function TodoList({
     setSearchOpen(true);
     searchRef.current?.focus();
   }
-  useSlashKey(true, openSearch);
+  useKeyShortcut("/", true, openSearch);
 
   const terms = searchTerms(query);
   const visibleItems = searchOpen
