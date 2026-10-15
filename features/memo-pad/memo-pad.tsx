@@ -188,6 +188,17 @@ export function MemoPad() {
             variant="ghost"
             size="icon"
             className="text-muted-foreground"
+            aria-label="메모 저장"
+            title="메모 저장"
+            onClick={handleSave}
+          >
+            <Save aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground"
             aria-label={listOpen ? "편집으로 돌아가기" : "저장한 메모 목록"}
             aria-pressed={listOpen}
             title={listOpen ? "편집으로 돌아가기" : "저장한 메모 목록"}
@@ -195,18 +206,8 @@ export function MemoPad() {
           >
             {listOpen ? <PencilLine aria-hidden="true" /> : <List aria-hidden="true" />}
           </Button>
+          <span aria-hidden="true" className="mx-1 h-5 w-px bg-border" />
           <CopyButton getText={() => doc.text} />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground"
-            aria-label="메모 저장"
-            title="메모 저장"
-            onClick={handleSave}
-          >
-            <Save aria-hidden="true" />
-          </Button>
           <DownloadButton getFile={() => memoFile(doc.text, doc.format)} />
           <UploadButton
             accept=".txt,.md,text/plain,text/markdown"
