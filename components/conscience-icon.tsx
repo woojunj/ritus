@@ -27,12 +27,12 @@ export function ConscienceIcon(props: SVGProps<SVGSVGElement>) {
       strokeLinejoin="round"
       {...props}
     >
-      <circle cx="12" cy="12" r="10" strokeWidth="1" strokeOpacity="0.5" />
+      <circle cx="12" cy="12" r="10" strokeWidth="1.5" />
       <path
         d={CONSCIENCE_HEXAGON_PATH}
-        strokeWidth="1.5"
+        strokeWidth="2"
         fill="currentColor"
-        fillOpacity="0.15"
+        fillOpacity="0.35"
       />
       {/* 선 모서리 대신 점이 원 위에 놓이게 해, 원 밖으로 나온 부분이 의도한 모양으로 읽힌다. */}
       {CONSCIENCE_HEXAGON_VERTICES.map(([x, y]) => (
