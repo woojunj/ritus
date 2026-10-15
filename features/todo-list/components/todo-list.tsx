@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useSyncExternalStore } from "react";
+import { useEffect, useState, useRef, useSyncExternalStore } from "react";
 import { Plus, Search, Timer, Trash2, Check, X } from "lucide-react";
 import Link from "next/link";
 
@@ -103,6 +103,39 @@ export function TodoList({
   const visibleItems = searchOpen
     ? items.filter((item) => containsAllTerms(item.title, terms))
     : items;
+
+  // 카드를 누를 때와 같은 시작 흐름. 세션이 도는 중이면 먼저 확인을 받는다.
+  function startItem(item: TodoItem) {
+    if (shouldConfirmStart?.(item)) {
+      setPendingStart(item);
+    } else {
+      closeSearch();
+      onStartTimer(item);
+    }
+  }
+
+  // 방향키로 고른 카드의 자리. 목록이 줄어 범위를 넘으면 보이지 않는 것으로 본다.
+  const [highlight, setHighlight] = useState<number | null>(null);
+  const highlighted =
+    highlight !== null && highlight < visibleItems.length ? highlight : null;
+  const keyboardOn = !isEditing && pendingStart === null && visibleItems.length > 0;
+
+  useKeyShortcut("ArrowDown", keyboardOn, () => {
+    setHighlight((current) => Math.min((current ?? -1) + 1, visibleItems.length - 1));
+  }, { onlyWhenNothingFocused: true });
+  useKeyShortcut("ArrowUp", keyboardOn, () => {
+    setHighlight((current) => Math.max((current ?? 0) - 1, 0));
+  }, { onlyWhenNothingFocused: true });
+  useKeyShortcut(" ", keyboardOn, () => {
+    if (highlighted !== null) startItem(visibleItems[highlighted]);
+  }, { onlyWhenNothingFocused: true });
+
+  useEffect(() => {
+    if (highlighted === null) return;
+    document
+      .querySelector<HTMLElement>('[data-highlighted="true"]')
+      ?.scrollIntoView({ block: "nearest" });
+  }, [highlighted]);
 
   return (
     <div className="flex min-h-full flex-col">
@@ -242,25 +275,22 @@ export function TodoList({
               ) : (
               /* 할 일 목록 */
               <ul className="flex flex-col gap-2" role="list">
-                {visibleItems.map((item) => {
+                {visibleItems.map((item, index) => {
                   const isConfirmingDelete = confirmDeleteId === item.id;
+                  const isHighlighted = highlighted === index;
 
                   return (
                     <li
                       key={item.id}
-                      className="flex items-stretch rounded-xl border bg-card shadow-xs transition-shadow hover:shadow-md overflow-hidden"
+                      data-highlighted={isHighlighted}
+                      className={`flex items-stretch rounded-xl border bg-card shadow-xs transition-shadow hover:shadow-md overflow-hidden${isHighlighted ? " ring-2 ring-ring" : ""}`}
                     >
                       {/* 카드 메인 영역: 타이머 시작을 위한 넓은 탭 영역 (터치 친화적) */}
                       <Link
                         href="/"
                         onClick={(e) => {
                           e.preventDefault();
-                          if (shouldConfirmStart?.(item)) {
-                            setPendingStart(item);
-                          } else {
-                            closeSearch();
-                            onStartTimer(item);
-                          }
+                          startItem(item);
                         }}
                         className="group flex flex-1 items-center gap-3 px-4 py-3.5 hover:bg-accent/40 active:bg-accent/60 transition-colors min-w-0"
                         aria-label={`"${item.title}" 타이머 시작`}
