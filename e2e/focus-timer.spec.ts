@@ -153,3 +153,27 @@ test("설정 화면에서 아무 데도 포커스가 없을 때 Space로 시작�
   await page.keyboard.press("Space");
   await expect(page.getByRole("timer")).toHaveText("01:00");
 });
+
+test("세션 중 포커스가 없을 때 Space로 일시정지하고 다시 누르면 이어 간다", async ({ page }) => {
+  await page.clock.install({ time: CLOCK_START });
+  await page.goto("/");
+  await page.getByLabel("시간(분)").fill("1");
+  await page.clock.pauseAt(SESSION_START);
+  await page.locator("body").click({ position: { x: 4, y: 4 } });
+  await page.keyboard.press("Space");
+
+  const clock = page.getByRole("timer");
+  await expect(clock).toHaveText("01:00");
+  await page.clock.fastForward(5_000);
+  await page.locator("body").click({ position: { x: 4, y: 4 } });
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("button", { name: "이어서" })).toBeVisible();
+
+  const pausedText = await clock.textContent();
+  await page.clock.fastForward(10_000);
+  await expect(clock).toHaveText(pausedText ?? "");
+
+  await page.locator("body").click({ position: { x: 4, y: 4 } });
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("button", { name: "일시정지" })).toBeVisible();
+});
