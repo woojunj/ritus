@@ -72,3 +72,19 @@ test("폰 너비에서 검색 칸이 열려도 가로 스크롤이 없다", asyn
   );
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test("방향키로 카드를 고르고 Space를 누르면 그 할 일의 타이머가 시작된다", async ({ page }) => {
+  await seedTodos(page);
+  await expect(todo(page, "운동 20분")).toBeVisible();
+
+  await page.locator("body").click({ position: { x: 4, y: 4 } });
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Space");
+
+  // 카드를 누를 때처럼 그 할 일을 채운 설정 화면으로 간다. 거기서 Space로 시작한다.
+  await expect(page.getByLabel("세션 제목")).toHaveValue("운동 20분");
+  await page.locator("body").click({ position: { x: 4, y: 4 } });
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("timer")).toBeVisible();
+});
