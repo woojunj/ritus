@@ -135,3 +135,21 @@ test("두 구간 반복이 총 시간을 넘겨 진행 중인 사이클을 채�
   await page.clock.fastForward(20_000);
   await expect(page.getByTestId("end-screen")).toBeVisible();
 });
+
+test("설정 화면에서 아무 데도 포커스가 없을 때 Space로 시작하고, 입력 칸에서는 글자로 쓰인다", async ({ page }) => {
+  await page.clock.install({ time: CLOCK_START });
+  await page.goto("/");
+
+  const minutes = page.getByLabel("시간(분)");
+  await minutes.fill("1");
+  // 입력 칸에서 Space는 글자로 쓰이고 세션을 시작하지 않는다.
+  await minutes.focus();
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("timer")).toHaveCount(0);
+
+  // 빈 곳을 눌러 포커스를 풀면 Space가 시작한다.
+  await page.locator("body").click({ position: { x: 4, y: 4 } });
+  await page.clock.pauseAt(SESSION_START);
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("timer")).toHaveText("01:00");
+});
