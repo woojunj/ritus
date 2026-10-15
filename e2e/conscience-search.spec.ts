@@ -135,3 +135,16 @@ test("닫기(×)를 누르면 신호 칩도 함께 지워진다", async ({ page 
   ).toHaveAttribute("aria-pressed", "false");
   await expect(card(page, "회의에서 말을 끊었다")).toBeVisible();
 });
+
+test("/를 누르면 검색 칸이 열리고 커서가 그 칸으로 간다", async ({ page }) => {
+  await seedNotes(page);
+  await expect(card(page, "회의")).toBeVisible();
+
+  await page.keyboard.press("/");
+  const search = page.getByRole("searchbox", { name: "양심노트 검색" });
+  await expect(search).toBeFocused();
+
+  await page.keyboard.type("약속");
+  await expect(card(page, "약속")).toBeVisible();
+  await expect(card(page, "회의")).toHaveCount(0);
+});

@@ -37,6 +37,19 @@ test("돋보기를 누르면 검색 칸이 열리고, 낱말을 모두 포함한
   await expect(page.getByText("일치하는 할 일이 없습니다")).toBeVisible();
 });
 
+test("/를 누르면 검색 칸이 열리고 커서가 그 칸으로 간다", async ({ page }) => {
+  await seedTodos(page);
+  await expect(todo(page, "운동 20분")).toBeVisible();
+
+  await page.keyboard.press("/");
+  const search = page.getByRole("searchbox", { name: "할 일 검색" });
+  await expect(search).toBeFocused();
+
+  await page.keyboard.type("운동");
+  await expect(todo(page, "운동 20분")).toBeVisible();
+  await expect(todo(page, "글쓰기 초안")).toHaveCount(0);
+});
+
 test("닫기(×)를 누르면 검색 칸이 사라지고 전체 목록이 돌아온다", async ({ page }) => {
   await seedTodos(page);
   await page.getByRole("button", { name: "할 일 검색" }).click();
