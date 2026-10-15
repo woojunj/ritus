@@ -17,18 +17,18 @@ export function SavedMemoList({
   library,
   onLoad,
   onDelete,
+  emptyMessage = "저장한 메모가 여기에 나타납니다",
 }: {
   library: MemoLibrary;
   onLoad: (memo: SavedMemo) => void;
   onDelete: (id: string) => void;
+  emptyMessage?: string;
 }) {
   const items = library.temp ? [library.temp, ...library.saved] : library.saved;
 
   if (items.length === 0) {
     return (
-      <p className="py-12 text-center text-sm text-muted-foreground">
-        저장한 메모가 여기에 나타납니다
-      </p>
+      <p className="py-12 text-center text-sm text-muted-foreground">{emptyMessage}</p>
     );
   }
 

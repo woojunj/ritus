@@ -3,6 +3,7 @@ import { describe, expect, test } from "vitest";
 import {
   addSaved,
   EMPTY_LIBRARY,
+  filterLibrary,
   memoTitle,
   normalizeLibrary,
   removeMemo,
@@ -55,5 +56,35 @@ describe("저장 목록 읽기", () => {
 
     expect(lib.saved).toEqual([{ id: "ok", text: "글", format: "md", savedAt: 5 }]);
     expect(lib.temp).toEqual({ id: "t", text: "임시", format: "txt", savedAt: 0 });
+  });
+});
+
+describe("저장 목록 검색", () => {
+  const lib = stashTemp(
+    addSaved(addSaved(EMPTY_LIBRARY, { text: "약속에 늦었다", format: "txt" }, "a", 1), { text: "회의 메모", format: "txt" }, "b", 2),
+    { text: "약속 다음 글", format: "txt" },
+    "t",
+    3,
+  );
+
+  test("낱말이 없으면 모든 메모가 남는다", () => {
+    expect(filterLibrary(lib, [])).toBe(lib);
+  });
+
+  test("낱말을 모두 포함한 저장 메모와 임시 보관본만 남는다", () => {
+    const found = filterLibrary(lib, ["약속"]);
+    expect(found.saved.map((memo) => memo.id)).toEqual(["a"]);
+    expect(found.temp?.id).toBe("t");
+  });
+
+  test("낱말이 하나라도 빠진 메모는 남지 않는다", () => {
+    const found = filterLibrary(lib, ["약속", "회의"]);
+    expect(found.saved).toEqual([]);
+    expect(found.temp).toBeNull();
+  });
+
+  test("영문은 대소문자를 구분하지 않는다", () => {
+    const english = addSaved(EMPTY_LIBRARY, { text: "Say Sorry", format: "txt" }, "e", 1);
+    expect(filterLibrary(english, ["SORRY"]).saved.map((memo) => memo.id)).toEqual(["e"]);
   });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { Eye, List, PencilLine, Save } from "lucide-react";
+import { Eye, List, PencilLine, Save, Search, X } from "lucide-react";
 
 import { CopyButton } from "@/components/copy-button";
 import { DownloadButton } from "@/components/download-button";
@@ -18,7 +18,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { UploadButton } from "@/components/upload-button";
+import { searchTerms } from "@/lib/search";
 import { useMounted } from "@/lib/use-mounted";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +29,7 @@ import { memoFile } from "./lib/download";
 import {
   addSaved,
   afterLoad,
+  filterLibrary,
   removeMemo,
   type MemoLibrary,
   type SavedMemo,
@@ -71,6 +74,9 @@ export function MemoPad() {
   );
   // 저장 목록을 보는 중인지. 목록을 보는 동안에는 편집 자리 대신 목록이 나온다.
   const [listOpen, setListOpen] = useState(false);
+  // 저장 목록의 검색 칸과 검색어. 목록을 떠나면 함께 지운다.
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
   // 불러오기 확인을 기다리는 저장된 메모와, 지우기 확인을 기다리는 메모의 id.
   const [pendingLoad, setPendingLoad] = useState<SavedMemo | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
@@ -110,10 +116,24 @@ export function MemoPad() {
 
   // 저장한 메모를 편집 자리에 올린다. 지금 글이 있으면 임시 보관 칸에 먼저 넣는다.
   // 임시 보관본을 불러오는 경우에도 지금 글과 바꿔 담으므로 어느 쪽도 사라지지 않는다.
+  function closeSearch() {
+    setSearchOpen(false);
+    setQuery("");
+  }
+
+  function closeList() {
+    setListOpen(false);
+    closeSearch();
+  }
+
+  const terms = searchTerms(query);
+  const shownLibrary = searchOpen ? filterLibrary(library, terms) : library;
+  const hasSaved = library.saved.length > 0 || library.temp !== null;
+
   function applyLoad(memo: SavedMemo, stashed: MemoLibrary) {
     saveLibrary(stashed);
     update({ text: memo.text, format: memo.format });
-    setListOpen(false);
+    closeList();
   }
 
   function handleLoad(memo: SavedMemo) {
@@ -202,7 +222,7 @@ export function MemoPad() {
             aria-label={listOpen ? "편집으로 돌아가기" : "저장한 메모 목록"}
             aria-pressed={listOpen}
             title={listOpen ? "편집으로 돌아가기" : "저장한 메모 목록"}
-            onClick={() => setListOpen((open) => !open)}
+            onClick={() => (listOpen ? closeList() : setListOpen(true))}
           >
             {listOpen ? <PencilLine aria-hidden="true" /> : <List aria-hidden="true" />}
           </Button>
@@ -306,8 +326,47 @@ export function MemoPad() {
 
       {listOpen ? (
         <div className="min-h-0 flex-1 overflow-y-auto">
+          {hasSaved && (
+            <div className="flex items-center gap-1 px-4 pt-4">
+              {searchOpen ? (
+                <>
+                  <Input
+                    type="search"
+                    aria-label="저장한 메모 검색"
+                    autoFocus
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground"
+                    aria-label="검색 닫기"
+                    title="검색 닫기"
+                    onClick={closeSearch}
+                  >
+                    <X aria-hidden="true" />
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="ml-auto text-muted-foreground"
+                  aria-label="저장한 메모 검색"
+                  title="저장한 메모 검색"
+                  onClick={() => setSearchOpen(true)}
+                >
+                  <Search aria-hidden="true" />
+                </Button>
+              )}
+            </div>
+          )}
           <SavedMemoList
-            library={library}
+            library={shownLibrary}
+            emptyMessage={searchOpen && terms.length > 0 ? "일치하는 메모가 없습니다" : undefined}
             onLoad={handleLoad}
             onDelete={(id) => setPendingDelete(id)}
           />
