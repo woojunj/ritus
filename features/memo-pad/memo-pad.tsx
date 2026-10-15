@@ -81,7 +81,7 @@ export function MemoPad() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center justify-between border-b px-4 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2">
         <div role="tablist" aria-label="형식" className="flex gap-1">
           {FORMATS.map((format) => (
             <Button
@@ -97,7 +97,7 @@ export function MemoPad() {
             </Button>
           ))}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center justify-end gap-1">
           <SaveStatus saving={saving} className="mr-1" />
           {isMd && (
             <Button
