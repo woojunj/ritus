@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { Eye, PencilLine } from "lucide-react";
+import { Eye, List, PencilLine, Save } from "lucide-react";
 
 import { CopyButton } from "@/components/copy-button";
 import { DownloadButton } from "@/components/download-button";
@@ -12,6 +12,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -21,7 +22,21 @@ import { UploadButton } from "@/components/upload-button";
 import { useMounted } from "@/lib/use-mounted";
 import { cn } from "@/lib/utils";
 
+import { SavedMemoList } from "./components/saved-memo-list";
 import { memoFile } from "./lib/download";
+import {
+  addSaved,
+  afterLoad,
+  removeMemo,
+  type MemoLibrary,
+  type SavedMemo,
+} from "./lib/library";
+import {
+  getLibraryServerSnapshot,
+  getLibrarySnapshot,
+  saveLibrary,
+  subscribeLibrary,
+} from "./lib/library-storage";
 import { countChars, cursorPosition, lineCount } from "./lib/stats";
 import {
   getMemoServerSnapshot,
@@ -33,6 +48,7 @@ import {
 } from "./lib/storage";
 
 const FORMATS: MemoFormat[] = ["txt", "md"];
+const NOTICE_MS = 3000;
 
 export function MemoPad() {
   const doc = useSyncExternalStore(
@@ -48,6 +64,18 @@ export function MemoPad() {
   const [narrowView, setNarrowView] = useState<"edit" | "preview">("edit");
   // 확인을 기다리는, 파일에서 읽은 글.
   const [pendingImport, setPendingImport] = useState<MemoDoc | null>(null);
+  const library = useSyncExternalStore(
+    subscribeLibrary,
+    getLibrarySnapshot,
+    getLibraryServerSnapshot
+  );
+  // 저장 목록을 보는 중인지. 목록을 보는 동안에는 편집 자리 대신 목록이 나온다.
+  const [listOpen, setListOpen] = useState(false);
+  // 불러오기 확인을 기다리는 저장된 메모와, 지우기 확인을 기다리는 메모의 id.
+  const [pendingLoad, setPendingLoad] = useState<SavedMemo | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -55,6 +83,43 @@ export function MemoPad() {
   }, []);
 
   const { saving, markSaved } = useSaveStatus();
+
+  // 잠깐 알리고 사라지는 안내. 저장이 되었거나 저장할 글이 없을 때 쓴다.
+  function showNotice(message: string) {
+    setNotice(message);
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setNotice(null), NOTICE_MS);
+  }
+
+  useEffect(
+    () => () => {
+      if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    },
+    []
+  );
+
+  // 지금 글을 저장 목록에 한 장으로 남긴다. 쓰던 글은 그대로 둔다.
+  function handleSave() {
+    if (!doc.text.trim()) {
+      showNotice("저장할 글이 없습니다");
+      return;
+    }
+    saveLibrary(addSaved(library, doc, crypto.randomUUID(), Date.now()));
+    showNotice("저장했습니다");
+  }
+
+  // 저장한 메모를 편집 자리에 올린다. 지금 글이 있으면 임시 보관 칸에 먼저 넣는다.
+  // 임시 보관본을 불러오는 경우에도 지금 글과 바꿔 담으므로 어느 쪽도 사라지지 않는다.
+  function applyLoad(memo: SavedMemo, stashed: MemoLibrary) {
+    saveLibrary(stashed);
+    update({ text: memo.text, format: memo.format });
+    setListOpen(false);
+  }
+
+  function handleLoad(memo: SavedMemo) {
+    if (doc.text.trim()) setPendingLoad(memo);
+    else applyLoad(memo, library);
+  }
 
   const update = (next: MemoDoc) => {
     saveMemo(next);
@@ -118,6 +183,30 @@ export function MemoPad() {
               )}
             </Button>
           )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground"
+            aria-label="메모 저장"
+            title="메모 저장"
+            onClick={handleSave}
+          >
+            <Save aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground"
+            aria-label={listOpen ? "편집으로 돌아가기" : "저장한 메모 목록"}
+            aria-pressed={listOpen}
+            title={listOpen ? "편집으로 돌아가기" : "저장한 메모 목록"}
+            onClick={() => setListOpen((open) => !open)}
+          >
+            {listOpen ? <PencilLine aria-hidden="true" /> : <List aria-hidden="true" />}
+          </Button>
+          <span aria-hidden="true" className="mx-1 h-5 w-px bg-border" />
           <CopyButton getText={() => doc.text} />
           <DownloadButton getFile={() => memoFile(doc.text, doc.format)} />
           <UploadButton
@@ -127,6 +216,69 @@ export function MemoPad() {
           />
         </div>
       </div>
+
+      {notice && (
+        <p aria-live="polite" className="border-b px-4 py-1 text-center text-sm text-muted-foreground">
+          {notice}
+        </p>
+      )}
+
+      <AlertDialog
+        open={pendingLoad !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingLoad(null);
+        }}
+      >
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingLoad && pendingLoad.id === library.temp?.id
+                ? "지금 글과 임시 보관본을 바꿀까요?"
+                : "지금 글을 임시 보관하고 이 메모를 불러올까요?"}
+            </AlertDialogTitle>
+            {library.temp && pendingLoad?.id !== library.temp.id && (
+              <AlertDialogDescription>이전 임시 보관본은 사라집니다.</AlertDialogDescription>
+            )}
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingLoad) {
+                  applyLoad(pendingLoad, afterLoad(library, doc, crypto.randomUUID(), Date.now()));
+                }
+                setPendingLoad(null);
+              }}
+            >
+              확인
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      >
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>이 메모를 지울까요?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingDelete) saveLibrary(removeMemo(library, pendingDelete));
+                setPendingDelete(null);
+              }}
+            >
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={pendingImport !== null}
@@ -152,6 +304,15 @@ export function MemoPad() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {listOpen ? (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <SavedMemoList
+            library={library}
+            onLoad={handleLoad}
+            onDelete={(id) => setPendingDelete(id)}
+          />
+        </div>
+      ) : (
       <div className={cn("grid min-h-0 flex-1", isMd && "md:grid-cols-2")}>
         <textarea
           ref={textareaRef}
@@ -183,6 +344,7 @@ export function MemoPad() {
           </div>
         )}
       </div>
+      )}
 
       <p
         data-testid="memo-status"

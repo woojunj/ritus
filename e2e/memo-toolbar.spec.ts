@@ -8,7 +8,7 @@ test("가장 큰 글자와 폰 너비에서도 메모 저장과 불러오기 버
   await page.evaluate(() => document.documentElement.setAttribute("data-text-size", "xlarge"));
 
   const viewport = page.viewportSize();
-  for (const name of ["파일로 저장", "파일 불러오기", "클립보드로 복사"]) {
+  for (const name of ["메모 저장", "저장한 메모 목록", "파일로 저장", "파일 불러오기", "클립보드로 복사"]) {
     const box = await page.getByRole("button", { name }).boundingBox();
     expect(box, name).not.toBeNull();
     expect(box!.x + box!.width, name).toBeLessThanOrEqual(viewport!.width);

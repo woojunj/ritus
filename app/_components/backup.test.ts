@@ -13,6 +13,7 @@ import {
 const SAMPLE: Backup = {
   conscienceNotes: [],
   memo: { text: "오늘 할 것", format: "md" },
+  memoLibrary: { saved: [], temp: null },
   todos: [{ id: "a", title: "글쓰기", completionCount: 2, createdAt: 1 }],
 };
 
@@ -114,5 +115,23 @@ describe("전체 백업", () => {
     expect(backupSummary({ ...SAMPLE, memo: { text: "", format: "txt" } })).toBe(
       "양심노트 0장, 할 일 1개, 메모 없음"
     );
+  });
+});
+
+describe("저장한 메모 백업", () => {
+  test("저장한 메모와 임시 보관본이 파일에 담겨 되살아난다", () => {
+    const memoLibrary = {
+      saved: [{ id: "s", text: "첫 메모", format: "txt" as const, savedAt: 3 }],
+      temp: { id: "t", text: "둘째", format: "md" as const, savedAt: 4 },
+    };
+    const parsed = parseBackup(backupFile({ ...SAMPLE, memoLibrary }).text);
+
+    expect(parsed?.backup.memoLibrary).toEqual(memoLibrary);
+  });
+
+  test("저장한 메모 항목이 없는 예전 백업은 빈 목록으로 읽는다", () => {
+    const legacy = JSON.stringify({ app: "ritus", conscienceNotes: [], memo: SAMPLE.memo, todos: [] });
+
+    expect(parseBackup(legacy)?.backup.memoLibrary).toEqual({ saved: [], temp: null });
   });
 });
