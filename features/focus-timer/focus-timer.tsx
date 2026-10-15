@@ -21,6 +21,8 @@ export function FocusTimer() {
   useKeyShortcut(" ", phase === "running" || phase === "paused", session.togglePause, {
     onlyWhenNothingFocused: true,
   });
+  // 완료 화면에서 Space는 같은 설정으로 다시 시작한다.
+  useKeyShortcut(" ", phase === "ended", session.start, { onlyWhenNothingFocused: true });
 
   return (
     <div className="flex flex-1 items-center justify-center p-6 sm:p-16">
