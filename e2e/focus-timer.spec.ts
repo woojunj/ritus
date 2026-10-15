@@ -177,3 +177,21 @@ test("세션 중 포커스가 없을 때 Space로 일시정지하고 다시 누�
   await page.keyboard.press("Space");
   await expect(page.getByRole("button", { name: "일시정지" })).toBeVisible();
 });
+
+test("완료 화면에서 포커스가 없을 때 Space로 같은 설정을 다시 시작한다", async ({ page }) => {
+  await page.clock.install({ time: CLOCK_START });
+  await page.goto("/");
+  await page.getByLabel("세션 제목").fill("결제 모듈 리팩터링");
+  await page.getByLabel("시간(분)").fill("1");
+  await page.clock.pauseAt(SESSION_START);
+  await page.getByRole("button", { name: "시작" }).click();
+  await page.clock.fastForward(60_000);
+
+  await expect(page.getByTestId("end-screen")).toBeVisible();
+  await page.locator("body").click({ position: { x: 4, y: 4 } });
+  await page.keyboard.press("Space");
+
+  await expect(page.getByTestId("end-screen")).toHaveCount(0);
+  await expect(page.getByRole("timer")).toHaveText("01:00");
+  await expect(page.getByText("결제 모듈 리팩터링")).toBeVisible();
+});
