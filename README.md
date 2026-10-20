@@ -39,7 +39,7 @@ bun dev
 | `bun run build` | 프로덕션 빌드 |
 | `bun start` | 프로덕션 서버 실행 |
 | `bun run lint` | ESLint 실행 |
-| `bun run typecheck` | `tsc --noEmit` 타입 검사 |
+| `bun run typecheck` | Next.js 라우트 타입 생성 후 `tsc --noEmit` 타입 검사 |
 | `bun run test` | Vitest 단위/컴포넌트 테스트 1회 실행 |
 | `bun run test:watch` | Vitest watch 모드 |
 | `bun run test:e2e` | Playwright E2E 테스트 실행 |
