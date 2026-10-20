@@ -1,3 +1,5 @@
+import { createBrowserStore } from "@/lib/browser-store";
+
 import { LEVELS, VIRTUES, type VirtueKey } from "./form";
 
 export type VirtueEntry = {
@@ -16,66 +18,18 @@ export type ConscienceNoteItem = {
   createdAt: number;
 };
 
-const STORAGE_KEY = "ritus:conscience-notes";
+const store = createBrowserStore<ConscienceNoteItem[]>({
+  key: "ritus:conscience-notes",
+  empty: [],
+  parse: (raw) => raw ? JSON.parse(raw) as ConscienceNoteItem[] : [],
+  readError: "empty",
+  writeMode: "persisted",
+});
 
-let cachedRaw: string | null = null;
-let cachedParsed: ConscienceNoteItem[] = [];
-const listeners = new Set<() => void>();
-
-export function subscribeNotes(callback: () => void): () => void {
-  listeners.add(callback);
-  const handleStorage = (e: StorageEvent) => {
-    if (e.key === STORAGE_KEY || e.key === null) {
-      cachedRaw = null;
-      callback();
-    }
-  };
-  if (typeof window !== "undefined") {
-    window.addEventListener("storage", handleStorage);
-  }
-  return () => {
-    listeners.delete(callback);
-    if (typeof window !== "undefined") {
-      window.removeEventListener("storage", handleStorage);
-    }
-  };
-}
-
-// useSyncExternalStore는 스냅샷 참조가 바뀌면 다시 그리므로, 빈 목록은 늘 같은 배열을 돌려준다.
-const EMPTY: ConscienceNoteItem[] = [];
-
-export function getNotesSnapshot(): ConscienceNoteItem[] {
-  if (typeof window === "undefined") return EMPTY;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY) ?? "";
-    if (raw !== cachedRaw) {
-      cachedRaw = raw;
-      cachedParsed = raw ? (JSON.parse(raw) as ConscienceNoteItem[]) : [];
-    }
-    return cachedParsed;
-  } catch {
-    return EMPTY;
-  }
-}
-
-export function getNotesServerSnapshot(): ConscienceNoteItem[] {
-  return EMPTY;
-}
-
-export function saveNotes(notes: ConscienceNoteItem[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    const serialized = JSON.stringify(notes);
-    localStorage.setItem(STORAGE_KEY, serialized);
-    cachedRaw = serialized;
-    cachedParsed = notes;
-    for (const listener of listeners) {
-      listener();
-    }
-  } catch {
-    // Ignore storage quota or disabled storage
-  }
-}
+export const subscribeNotes = store.subscribe;
+export const getNotesSnapshot = store.getSnapshot;
+export const getNotesServerSnapshot = store.getServerSnapshot;
+export const saveNotes = store.save;
 
 /** 기기 현지 날짜를 YYYY-MM-DD로 돌려준다. */
 export function todayIso(now: Date = new Date()): string {
