@@ -46,6 +46,8 @@ bun dev
 
 ## 테스트
 
+PR을 열거나 `main`에 변경이 들어오면 GitHub Actions가 `bun install --frozen-lockfile` 후 lint, 타입 검사, 단위·컴포넌트 테스트를 실행합니다. Bun 버전은 `package.json`의 `packageManager`와 같이 1.3.6으로 고정합니다. E2E와 오프라인 테스트는 아래 명령으로 별도 실행합니다.
+
 - **단위·컴포넌트**: Vitest + Testing Library. 설정은 `vitest.config.mts`, 매처와 cleanup은 `vitest.setup.ts`에 있습니다. 테스트 파일은 소스 옆에 `*.test.ts(x)`로 둡니다(`app/page.test.tsx`, `lib/utils.test.ts` 참고). `globals`를 켜지 않았으므로 `describe`/`it`/`expect`는 `vitest`에서 import 합니다.
 - **E2E**: Playwright. 설정은 `playwright.config.ts`, 테스트는 `e2e/*.spec.ts`에 둡니다. `webServer`가 `bun run dev`를 자동으로 띄우므로 별도 서버 실행이 필요 없습니다.
 
