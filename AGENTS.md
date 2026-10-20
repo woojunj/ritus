@@ -27,6 +27,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 경로, 명령어, 식별자, 라이브러리 이름, 로그 인용은 원문을 유지한다.
 
+# 프로젝트 문맥
+
+제품 방향은 `PRODUCT.md`, 용어는 `GLOSSARY.md`, 재사용할 결정은 `docs/decisions/README.md`에서 찾아 읽는다. 현재 사용법은 `docs/manual.md`, 미확인·보류 항목은 `docs/remaining-work.md`, 증거가 있는 결함은 `docs/follow-ups/`가 맡는다. 완료된 스펙은 필요한 결정을 옮긴 뒤 지우며 이력은 Git에서 찾는다.
+
 # 매뉴얼
 
 사용자에게 보이는 동작을 더하거나 바꾸거나 없애면 같은 PR에서 `docs/manual.md`를 함께 고친다. 버튼, 화면, 문구, 저장·불러오기 규칙이 여기에 해당한다.
