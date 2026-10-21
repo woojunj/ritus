@@ -7,7 +7,6 @@ const store = createBrowserStore<MemoLibrary>({
   empty: EMPTY_LIBRARY,
   parse: (raw) => raw ? normalizeLibrary(JSON.parse(raw)) : EMPTY_LIBRARY,
   readError: "cached",
-  writeMode: "memory",
 });
 
 export const subscribeLibrary = store.subscribe;

@@ -59,8 +59,8 @@ export function MemoPad() {
       showNotice("저장할 글이 없습니다");
       return;
     }
-    saveLibrary(addSaved(library, doc, crypto.randomUUID(), Date.now()));
-    showNotice("저장했습니다");
+    const saved = saveLibrary(addSaved(library, doc, crypto.randomUUID(), Date.now()));
+    showNotice(saved ? "저장했습니다" : "저장하지 못했습니다");
   }
 
   // 입력 중에도 저장한다. 한글 입력 상태와 무관하게 키 위치를 본다.

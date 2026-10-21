@@ -1,20 +1,22 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { createBrowserStore } from "./browser-store";
+import { createBrowserStore, getSaveFailureSnapshot, retryFailedSaves } from "./browser-store";
 
 const KEY = "test:browser-store";
-function makeStore(writeMode: "memory" | "persisted" = "persisted", readError: "empty" | "cached" = "empty") {
+function makeStore(readError: "empty" | "cached" = "empty", key = KEY) {
   return createBrowserStore<string[]>({
-    key: KEY,
+    key,
     empty: [],
     parse: (raw) => raw ? JSON.parse(raw) : [],
     readError,
-    writeMode,
   });
 }
 
 beforeEach(() => localStorage.clear());
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  retryFailedSaves();
+});
 
 describe("브라우저 저장 장치", () => {
   test("저장값이 같으면 스냅샷 참조를 유지하고 서버는 늘 같은 빈 값을 돌려준다", () => {
@@ -59,7 +61,7 @@ describe("브라우저 저장 장치", () => {
 
   test("손상된 JSON은 빈 값 또는 마지막 캐시라는 기능별 읽기 정책을 따른다", () => {
     const emptyStore = makeStore();
-    const cachedStore = makeStore("memory", "cached");
+    const cachedStore = makeStore("cached");
     emptyStore.save(["보관"]);
     expect(cachedStore.getSnapshot()).toEqual(["보관"]);
     localStorage.setItem(KEY, "{손상");
@@ -70,16 +72,45 @@ describe("브라우저 저장 장치", () => {
     expect(cachedStore.getSnapshot()).toEqual(["복구"]);
   });
 
-  test.each(["memory", "persisted"] as const)("저장 실패 시 %s 정책을 유지한다", (mode) => {
-    const store = makeStore(mode, "cached");
+  test("저장 실패는 알리되 최신 값을 남기고, 재시도하면 그 값을 저장한다", () => {
+    const store = makeStore();
     store.save(["이전"]);
     const changed = vi.fn();
     const unsubscribe = store.subscribe(changed);
-    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("용량 초과"); });
-    store.save(["현재"]);
-    expect(store.getSnapshot()).toEqual(mode === "memory" ? ["현재"] : ["이전"]);
-    expect(changed).toHaveBeenCalledTimes(mode === "memory" ? 1 : 0);
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("용량 초과"); });
+    expect(store.save(["현재"])).toBe(false);
+    expect(getSaveFailureSnapshot()).toBe(true);
+    expect(store.getSnapshot()).toEqual(["현재"]);
+    expect(changed).toHaveBeenCalledTimes(1);
     expect(JSON.parse(localStorage.getItem(KEY)!)).toEqual(["이전"]);
+    store.save(["마지막 수정"]);
+    setItem.mockRestore();
+    retryFailedSaves();
+    expect(getSaveFailureSnapshot()).toBe(false);
+    expect(JSON.parse(localStorage.getItem(KEY)!)).toEqual(["마지막 수정"]);
     unsubscribe();
+  });
+
+  test("첫 저장과 읽기가 모두 막혀도 입력을 유지한다", () => {
+    const store = makeStore();
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("차단"); });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("차단"); });
+    expect(store.save(["처음 쓴 글"])).toBe(false);
+    expect(store.getSnapshot()).toEqual(["처음 쓴 글"]);
+  });
+
+  test("일부만 저장됐을 때는 경고를 유지하고 실패한 것만 다시 저장한다", () => {
+    const first = makeStore("cached", "test:first");
+    const second = makeStore("cached", "test:second");
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("차단"); });
+    first.save(["첫째"]);
+    second.save(["둘째"]);
+    setItem.mockRestore();
+    expect(first.save(["첫째 수정"])).toBe(true);
+    expect(getSaveFailureSnapshot()).toBe(true);
+    retryFailedSaves();
+    expect(getSaveFailureSnapshot()).toBe(false);
+    expect(JSON.parse(localStorage.getItem("test:first")!)).toEqual(["첫째 수정"]);
+    expect(JSON.parse(localStorage.getItem("test:second")!)).toEqual(["둘째"]);
   });
 });
