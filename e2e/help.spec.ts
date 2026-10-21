@@ -18,6 +18,17 @@ test("도움말 아이콘을 누르면 매뉴얼이 서식대로 보이고 문�
   ).toBeVisible();
   await expect(article).not.toContainText("아이콘:");
 
+  for (const description of [
+    "지금 글을 저장 목록에 한 장으로 남깁니다",
+    "저장한 메모 목록을 엽니다",
+    "글을 고른 형식의 파일",
+  ]) {
+    await expect(article.getByRole("listitem").filter({ hasText: description }).locator("svg")).toBeVisible();
+  }
+  // 검색·닫기는 문장 안에도 들어간다. 본문의 이름 옆에 실제 아이콘이 있어야 한다.
+  await expect(article.locator("svg.lucide-search").first()).toBeAttached();
+  await expect(article.locator("svg.lucide-x").first()).toBeAttached();
+
   const backup = page.getByRole("heading", { level: 2, name: "전체 백업" });
   await expect(backup).not.toBeInViewport();
   // 맨 위 "먼저 알아 둘 것" 요약의 링크를 누른다. 본문에도 같은 이름의 링크가 있다.
