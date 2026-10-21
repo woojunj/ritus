@@ -6,6 +6,7 @@ import { FocusSessionProvider } from "@/features/focus-timer";
 import { incrementCompletionCount } from "@/features/todo-list";
 
 import { AppHeader } from "./app-header";
+import { SaveFailureWarning } from "./save-failure-warning";
 
 function handleFinish(todoId: string | undefined) {
   if (todoId) {
@@ -20,6 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <FocusSessionProvider onFinish={handleFinish}>
       <div className="flex h-dvh flex-col">
         <AppHeader />
+        <SaveFailureWarning />
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {children}
         </main>

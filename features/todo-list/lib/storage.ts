@@ -13,7 +13,6 @@ const store = createBrowserStore<TodoItem[]>({
   empty: [],
   parse: (raw) => raw ? JSON.parse(raw) as TodoItem[] : [],
   readError: "empty",
-  writeMode: "persisted",
 });
 
 export const subscribeTodos = store.subscribe;

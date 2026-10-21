@@ -13,7 +13,6 @@ const store = createBrowserStore<MemoDoc>({
   empty: EMPTY_DOC,
   parse: (raw) => raw ? { ...EMPTY_DOC, ...JSON.parse(raw) as Partial<MemoDoc> } : EMPTY_DOC,
   readError: "cached",
-  writeMode: "memory",
 });
 
 export const subscribeMemo = store.subscribe;

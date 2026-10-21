@@ -23,7 +23,6 @@ const store = createBrowserStore<ConscienceNoteItem[]>({
   empty: [],
   parse: (raw) => raw ? JSON.parse(raw) as ConscienceNoteItem[] : [],
   readError: "empty",
-  writeMode: "persisted",
 });
 
 export const subscribeNotes = store.subscribe;

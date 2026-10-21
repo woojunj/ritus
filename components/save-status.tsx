@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, LoaderCircle } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Check, CircleAlert, LoaderCircle } from "lucide-react";
 
+import { getSaveFailureSnapshot, getSaveFailureServerSnapshot, subscribeSaveFailures } from "@/lib/browser-store";
 import { cn } from "@/lib/utils";
 
 const SAVING_MS = 600;
@@ -39,20 +40,24 @@ export function SaveStatus({
   saving: boolean;
   className?: string;
 }) {
+  const failed = useSyncExternalStore(subscribeSaveFailures, getSaveFailureSnapshot, getSaveFailureServerSnapshot);
   return (
     <span
       role="status"
       className={cn(
         "inline-flex items-center gap-1 text-xs whitespace-nowrap text-muted-foreground",
+        failed && "text-destructive",
         className
       )}
     >
-      {saving ? (
+      {failed ? (
+        <CircleAlert className="size-3" aria-hidden="true" />
+      ) : saving ? (
         <LoaderCircle className="size-3 animate-spin" aria-hidden="true" />
       ) : (
         <Check className="size-3" aria-hidden="true" />
       )}
-      {saving ? "저장 중…" : "자동 저장됨"}
+      {failed ? "저장하지 못함" : saving ? "저장 중…" : "자동 저장됨"}
     </span>
   );
 }
