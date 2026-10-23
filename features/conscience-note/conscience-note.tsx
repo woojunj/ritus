@@ -13,6 +13,7 @@ import { useKeyShortcut } from "@/lib/use-key-shortcut";
 import { DeleteNoteDialog } from "./components/delete-note-dialog";
 import { HelperLink } from "./components/helper-link";
 import { NoteSheet } from "./components/note-sheet";
+import { NoteHelp } from "./components/note-help";
 import { PasteDialog } from "./components/paste-dialog";
 import { RadarChart } from "./components/radar-chart";
 import {
@@ -187,7 +188,7 @@ export function ConscienceNote() {
             onDelete={() => handleDelete(openNote.id)}
           />
         ) : (
-          <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-8">
+          <div data-note-help-root className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
                 <h1 className="font-heading text-lg font-semibold">양심노트</h1>
@@ -207,6 +208,7 @@ export function ConscienceNote() {
                 )}
               </div>
               <div className="flex items-center gap-1">
+                <NoteHelp mode="list" />
                 <HelperLink />
                 <Button
                   type="button"
@@ -232,7 +234,7 @@ export function ConscienceNote() {
                     className="text-muted-foreground"
                   />
                 )}
-                <Button type="button" size="icon" title="새 양심노트 쓰기" onClick={handleCreate}>
+                <Button data-note-help="create" type="button" size="icon" title="새 양심노트 쓰기" onClick={handleCreate}>
                   <Plus aria-hidden="true" />
                   <span className="sr-only">새 양심노트 쓰기</span>
                 </Button>

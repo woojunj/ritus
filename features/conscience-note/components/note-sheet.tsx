@@ -16,6 +16,7 @@ import { noteLevels, type ConscienceNoteItem } from "../lib/storage";
 import { DeleteNoteDialog } from "./delete-note-dialog";
 import { HelperLink } from "./helper-link";
 import { RadarChart } from "./radar-chart";
+import { NoteHelp } from "./note-help";
 
 interface NoteSheetProps {
   note: ConscienceNoteItem;
@@ -78,8 +79,8 @@ export function NoteSheet({
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col px-4 py-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-3">
+    <div data-note-help-root className="mx-auto flex w-full max-w-2xl flex-col px-4 py-4">
+      <div data-note-help="save" className="flex flex-wrap items-center justify-between gap-2 pb-3">
         <div className="flex items-center gap-2">
           <Input
             type="date"
@@ -94,12 +95,16 @@ export function NoteSheet({
           <SaveStatus saving={saving} />
         </div>
         <div className="flex items-center gap-1">
-          <HelperLink />
-          <CopyButton
-            getText={() => noteToText(note)}
-            className="text-muted-foreground"
-          />
+          <NoteHelp mode="sheet" />
+          <span data-note-help="helper" className="inline-flex"><HelperLink /></span>
+          <span data-note-help="copy" className="inline-flex">
+            <CopyButton
+              getText={() => noteToText(note)}
+              className="text-muted-foreground"
+            />
+          </span>
           <Button
+            data-note-help="paste"
             type="button"
             variant="ghost"
             size="icon"
@@ -110,10 +115,12 @@ export function NoteSheet({
             <ClipboardPaste aria-hidden="true" />
             <span className="sr-only">클립보드에서 붙여넣기</span>
           </Button>
-          <DownloadButton
-            getFile={() => noteFile(note)}
-            className="text-muted-foreground"
-          />
+          <span data-note-help="download" className="inline-flex">
+            <DownloadButton
+              getFile={() => noteFile(note)}
+              className="text-muted-foreground"
+            />
+          </span>
           <Button
             type="button"
             variant="ghost"
@@ -139,7 +146,7 @@ export function NoteSheet({
         </p>
       )}
 
-      <section className={ROW_CLASS}>
+      <section data-note-help="matter" className={ROW_CLASS}>
         <label htmlFor="conscience-matter" className={NAME_CLASS}>
           사안
         </label>
@@ -156,7 +163,7 @@ export function NoteSheet({
         const entry = note.virtues[virtue.key];
         const fieldId = `conscience-${virtue.key}`;
         return (
-          <section key={virtue.key} className={ROW_CLASS}>
+          <section key={virtue.key} data-note-help={virtue.key === "immersion" ? "virtue" : undefined} className={ROW_CLASS}>
             <label htmlFor={fieldId} className={NAME_CLASS}>
               {virtue.name}
             </label>
@@ -172,6 +179,7 @@ export function NoteSheet({
                 onChange={(e) => updateVirtue(virtue.key, { text: e.target.value })}
               />
               <div
+                data-note-help={virtue.key === "immersion" ? "signal" : undefined}
                 role="group"
                 aria-label={`${virtue.name} 신호`}
                 className="flex flex-wrap gap-1"
@@ -205,12 +213,13 @@ export function NoteSheet({
         </label>
         <div className="flex min-w-0 flex-col items-center gap-4 md:flex-row md:items-start">
           <TextArea
+            data-note-help="conclusion"
             id="conscience-conclusion"
             value={note.conclusion}
             onChange={(e) => onChange({ ...note, conclusion: e.target.value })}
             className="min-h-40 md:min-h-56 md:flex-1"
           />
-          <RadarChart levels={noteLevels(note)} className="shrink-0 md:w-64" />
+          <div data-note-help="chart" className="w-full max-w-64 shrink-0 md:w-64"><RadarChart levels={noteLevels(note)} /></div>
         </div>
       </section>
 
