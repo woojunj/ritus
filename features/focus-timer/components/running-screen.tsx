@@ -44,11 +44,12 @@ export function RunningScreen({
 
   return (
     <div className="flex w-full flex-col items-center gap-8">
-      <div className="relative flex items-center justify-center">
+      <div data-timer-help="progress" className="relative flex items-center justify-center">
         <ProgressRing fraction={fraction} />
       </div>
 
       <Button
+        data-timer-help="clock"
         type="button"
         variant="ghost"
         size="sm"
@@ -98,6 +99,7 @@ export function RunningScreen({
 
       <div className="flex gap-3">
         <Button
+          data-timer-help="pause"
           type="button"
           variant="outline"
           title={phase === "running" ? "일시정지" : "이어서"}
@@ -112,7 +114,7 @@ export function RunningScreen({
             {phase === "running" ? "일시정지" : "이어서"}
           </span>
         </Button>
-        <Button type="button" variant="ghost" title="그만두기" onClick={onQuit}>
+        <Button data-timer-help="quit" type="button" variant="ghost" title="그만두기" onClick={onQuit}>
           <Square aria-hidden="true" />
           <span className="sr-only">그만두기</span>
         </Button>

@@ -52,7 +52,7 @@ export function IntervalFields({ plan, onPlanChange, totalSeconds }: IntervalFie
           onChange={handleSecondChange}
         />
       </div>
-      <p data-testid="interval-summary" className="text-xs text-muted-foreground">
+      <p data-timer-help="summary" data-testid="interval-summary" className="text-xs text-muted-foreground">
         {formatCycleSummary(totalSeconds, plan)}
       </p>
     </div>
@@ -88,7 +88,7 @@ function SecondsField({
   };
 
   return (
-    <div data-order={order} className="flex flex-col items-center gap-2">
+    <div data-timer-help={order} data-order={order} className="flex flex-col items-center gap-2">
       <div className="relative flex items-center justify-center">
         <IntervalDial seconds={value} onChange={onChange} ariaLabel={`${label} 다이얼`} />
         <div className="pointer-events-none absolute flex flex-col items-center">
