@@ -7,6 +7,7 @@ import { EndScreen } from "./components/end-screen";
 import { RunningScreen } from "./components/running-screen";
 import { SetupScreen } from "./components/setup-screen";
 import { useFocusSession } from "./focus-session";
+import { TimerHelp } from "./components/timer-help";
 
 // 타이머 화면. 세션 상태는 FocusSessionProvider가 쥐고, 여기서는 지금 단계에
 // 맞는 화면만 그린다.
@@ -25,9 +26,12 @@ export function FocusTimer() {
   useKeyShortcut(" ", phase === "ended", session.start, { onlyWhenNothingFocused: true });
 
   return (
-    <div className="flex flex-1 items-center justify-center p-6 sm:p-16">
+    <div data-help-root className="flex flex-1 flex-col px-6 py-4 sm:px-16 sm:py-8">
+      {phase !== "setup" && <div className="mx-auto flex w-full max-w-sm justify-end"><TimerHelp key={phase} phase={phase} intervalEnabled={session.intervalEnabled} /></div>}
+      <div className="flex flex-1 items-center justify-center py-4">
       {phase === "setup" && (
         <SetupScreen
+          help={<TimerHelp key={`setup-${session.intervalEnabled}`} phase="setup" intervalEnabled={session.intervalEnabled} />}
           title={session.title}
           minutes={session.minutes}
           onTitleChange={session.setTitle}
@@ -67,6 +71,7 @@ export function FocusTimer() {
           onNewSetup={session.quit}
         />
       )}
+      </div>
     </div>
   );
 }

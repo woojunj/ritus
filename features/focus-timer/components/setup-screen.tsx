@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ interface SetupScreenProps {
   intervalPlan: IntervalPlan;
   onIntervalPlanChange: (plan: IntervalPlan) => void;
   onStart: () => void;
+  help?: ReactNode;
 }
 
 export function SetupScreen({
@@ -34,6 +35,7 @@ export function SetupScreen({
   intervalPlan,
   onIntervalPlanChange,
   onStart,
+  help,
 }: SetupScreenProps) {
   // 로컬 텍스트로 들고 있다가 유효한 값일 때만 커밋한다.
   // 그래야 값을 지우는 동안 Number("")가 0으로 읽혀 즉시 1분으로
@@ -57,6 +59,7 @@ export function SetupScreen({
     <div className="flex w-full flex-col items-center gap-8 lg:max-w-3xl lg:flex-row lg:items-start lg:justify-center lg:gap-12">
       <div className="flex w-full max-w-sm flex-col items-center gap-8">
         <Input
+          data-timer-help="title"
           aria-label="세션 제목"
           placeholder="지금 무엇을 할까요?"
           value={title}
@@ -64,7 +67,7 @@ export function SetupScreen({
           className="text-center text-base"
         />
 
-        <div className="relative flex items-center justify-center">
+        <div data-timer-help="time" className="relative flex items-center justify-center">
           <TimeDial minutes={minutes} onChange={onMinutesChange} />
           <div className="pointer-events-none absolute flex flex-col items-center">
             <span className="text-4xl font-semibold tabular-nums text-foreground">
@@ -74,7 +77,7 @@ export function SetupScreen({
           </div>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+        <label data-timer-help="minutes" className="flex items-center gap-2 text-sm text-muted-foreground">
           직접 입력
           <Input
             type="number"
@@ -101,7 +104,10 @@ export function SetupScreen({
           />
         </label>
 
-        <IntervalToggle enabled={intervalEnabled} onToggleEnabled={onToggleIntervalEnabled} />
+        <div className="flex items-center justify-center gap-2">
+          <IntervalToggle enabled={intervalEnabled} onToggleEnabled={onToggleIntervalEnabled} />
+          {help}
+        </div>
 
         {fields && (
           <div data-testid="interval-fields-narrow" className="w-full lg:hidden">
@@ -109,7 +115,7 @@ export function SetupScreen({
           </div>
         )}
 
-        <Button type="button" size="lg" className="w-full" title="시작" onClick={onStart}>
+        <Button data-timer-help="start" type="button" size="lg" className="w-full" title="시작" onClick={onStart}>
           <Play aria-hidden="true" />
           <span className="sr-only">시작</span>
         </Button>

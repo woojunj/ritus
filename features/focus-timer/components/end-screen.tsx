@@ -32,6 +32,7 @@ export function EndScreen({
       className="flex w-full flex-col items-center gap-6 data-[blinking=true]:animate-pulse"
     >
       <div
+        data-timer-help="ending"
         role="timer"
         className="font-heading font-semibold tabular-nums text-foreground"
         style={{ fontSize: "clamp(3rem, 18vw, 12rem)" }}
@@ -51,6 +52,7 @@ export function EndScreen({
 
       <div className="flex items-center gap-3">
         <Button
+          data-timer-help="restart"
           type="button"
           size="lg"
           title="다시 시작"
@@ -63,6 +65,7 @@ export function EndScreen({
           <span className="sr-only">다시 시작</span>
         </Button>
         <Button
+          data-timer-help="new-setup"
           type="button"
           size="lg"
           variant="outline"

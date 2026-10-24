@@ -11,6 +11,7 @@ export function MuteToggle() {
 
   return (
     <Button
+      data-timer-help="sound"
       type="button"
       variant="ghost"
       size="icon"

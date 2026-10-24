@@ -14,6 +14,7 @@ interface IntervalToggleProps {
 export function IntervalToggle({ enabled, onToggleEnabled }: IntervalToggleProps) {
   return (
     <Button
+      data-timer-help="repeat"
       type="button"
       variant="outline"
       size="sm"
