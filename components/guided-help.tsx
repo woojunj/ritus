@@ -30,7 +30,35 @@ export function GuidedHelp({ name, steps, finishLabel = "안내 마치기", targ
   const panel = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const [highlight, setHighlight] = useState<Highlight | null>(null);
+  const [discovering, setDiscovering] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  const hintDismissed = useRef(false);
+  const hintKey = `ritus:help-hint:${name}:${steps[0].target}:v7`;
   const id = useId();
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    // Strict Mode의 효과 재실행에서도 첫 표시와 5초 종료가 한 쌍으로 실행된다.
+    const frame = requestAnimationFrame(() => {
+      if (hintDismissed.current) return;
+      const preview = process.env.NODE_ENV === "development" && new URLSearchParams(window.location.search).has("help-preview");
+      setPreviewing(preview);
+      try {
+        if (!preview) {
+          if (localStorage.getItem(hintKey)) return;
+          localStorage.setItem(hintKey, "seen");
+        }
+      } catch {
+        // 시각적 안내의 표시 여부는 글 저장 실패 안내를 띄우지 않는다.
+      }
+      setDiscovering(true);
+      timeout = setTimeout(() => setDiscovering(false), 5000);
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [hintKey]);
 
   useEffect(() => {
     if (!open || !dialog.current) return;
@@ -91,8 +119,9 @@ export function GuidedHelp({ name, steps, finishLabel = "안내 마치기", targ
   }, [open, current, targetAttribute]);
 
   return <>
-    <Button ref={trigger} type="button" variant="ghost" size="icon" title={`${name} 도움말`} aria-label={`${name} 도움말`} onClick={() => { setStep(0); setOpen(true); }}>
-      <CircleHelp aria-hidden="true" />
+    <Button ref={trigger} type="button" variant="ghost" size="icon" className="relative isolate" title={`${name} 도움말`} aria-label={`${name} 도움말`} onClick={() => { hintDismissed.current = true; setDiscovering(false); setStep(0); setOpen(true); }}>
+      {discovering && <span aria-hidden="true" data-testid="help-discovery-ring" data-force-motion={previewing || undefined} className="help-discovery-ring" />}
+      <CircleHelp aria-hidden="true" className="relative" />
     </Button>
     {open && <dialog ref={dialog} aria-labelledby={`${id}-title`} aria-describedby={`${id}-description`} onCancel={(event) => { event.preventDefault(); setOpen(false); }} className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none overflow-hidden border-0 bg-transparent p-0 text-foreground outline-none backdrop:bg-transparent">
       {highlight && <svg aria-hidden="true" className="pointer-events-none absolute inset-0 size-full" viewBox={`0 0 ${highlight.viewportWidth} ${highlight.viewportHeight}`}>
