@@ -54,6 +54,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.508 0.118 165.612);
+  --help-discovery-color: var(--primary);
   --primary-foreground: oklch(0.979 0.021 166.113);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
@@ -91,6 +92,7 @@
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.432 0.095 166.913);
+  --help-discovery-color: color-mix(in oklch, var(--primary) 35%, var(--foreground) 65%);
   --primary-foreground: oklch(0.979 0.021 166.113);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
@@ -115,6 +117,36 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+@keyframes help-discovery-breathe {
+  0%, 100% { transform: scale(0.5); }
+  50% { transform: scale(1.1); }
+}
+
+.help-discovery-ring {
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+  border-radius: 9999px;
+  opacity: 1;
+  background: color-mix(in oklch, var(--help-discovery-color) 32%, transparent);
+  border: 1px solid color-mix(in oklch, var(--help-discovery-color) 55%, transparent);
+  box-shadow: 0 0 18px color-mix(in oklch, var(--help-discovery-color) 38%, transparent);
+  animation: help-discovery-breathe calc(5s / 3) ease-in-out 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .help-discovery-ring {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* 사용자가 요청한 개발 미리보기에서만 기기의 동작 줄이기를 무시한다. */
+.help-discovery-ring[data-force-motion] {
+  animation: help-discovery-breathe calc(5s / 3) ease-in-out 3;
+  opacity: 1;
 }
 
 @layer base {
