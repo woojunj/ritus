@@ -47,6 +47,7 @@ export function MemoToolbar({
         ))}
       </div>
       <div className="flex flex-wrap items-center justify-end gap-1">
+        <div role="group" aria-label="메모 편집과 목록" className="flex flex-wrap items-center justify-end gap-1">
         <MemoHelp key={listOpen ? "library" : "editor"} listOpen={listOpen} hasSaved={hasSaved} />
         <span data-memo-help="autosave" className="inline-flex"><SaveStatus saving={saving} className="mr-1" /></span>
         {doc.format === "md" && (
@@ -83,10 +84,12 @@ export function MemoToolbar({
         >
           {listOpen ? <PencilLine aria-hidden="true" /> : <List aria-hidden="true" />}
         </Button>
-        <span aria-hidden="true" className="mx-1 h-5 w-px bg-border" />
+        </div>
+        <div role="group" aria-label="메모 복사와 파일" className="flex shrink-0 items-center gap-1 border-l border-border pl-2">
         <span data-memo-help="copy" className="inline-flex"><CopyButton getText={() => doc.text} /></span>
         <span data-memo-help="download" className="inline-flex"><DownloadButton getFile={() => memoFile(doc.text, doc.format)} /></span>
         <span data-memo-help="import" className="inline-flex"><UploadButton accept=".txt,.md,text/plain,text/markdown" label="파일 불러오기" onText={onImport} /></span>
+        </div>
       </div>
     </div>
   );

@@ -189,9 +189,9 @@ export function ConscienceNote() {
           />
         ) : (
           <div data-note-help-root className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-1">
-                <h1 className="font-heading text-lg font-semibold">양심노트</h1>
+                <h1 className="font-heading text-lg font-semibold"><span className="inline-block whitespace-nowrap">양심</span><wbr /><span className="inline-block whitespace-nowrap">노트</span></h1>
                 {notes.length > 0 && (
                   <Button
                     type="button"
@@ -207,7 +207,7 @@ export function ConscienceNote() {
                   </Button>
                 )}
               </div>
-              <div className="flex items-center gap-1">
+              <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
                 <NoteHelp mode="list" />
                 <HelperLink />
                 <Button
