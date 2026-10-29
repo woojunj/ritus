@@ -21,11 +21,11 @@ function unguardFormula(cell: string): string {
   return GUARDED.test(cell) ? cell.slice(1) : cell;
 }
 
-/** 할 일 목록을 화면에 보이는 순서대로 "할 일,완주 횟수" CSV로 만든다. */
+/** 할 일 목록을 화면에 보이는 순서대로 체크 상태까지 CSV로 만든다. */
 export function todosToCsv(items: TodoItem[]): string {
   return [
-    "할 일,완주 횟수",
-    ...items.map((item) => `${csvCell(guardFormula(item.title))},${item.completionCount}`),
+    "할 일,완주 횟수,완료 여부",
+    ...items.map((item) => `${csvCell(guardFormula(item.title))},${item.completionCount},${item.completed ? "완료" : "미완료"}`),
   ].join("\n");
 }
 
@@ -85,7 +85,7 @@ export function parseTodos(text: string, existing: TodoItem[]): TodoItem[] {
   const titles = new Set(existing.map((item) => item.title));
   const now = Date.now();
   const items: TodoItem[] = [];
-  for (const [rawTitle = "", rawCount = ""] of parseCsv(text.replace(/^\uFEFF/, ""))) {
+  for (const [rawTitle = "", rawCount = "", rawCompleted = ""] of parseCsv(text.replace(/^\uFEFF/, ""))) {
     const title = unguardFormula(rawTitle.trim());
     if (!title || titles.has(title)) continue;
     if (items.length === 0 && title === "할 일" && rawCount.trim() === "완주 횟수") continue;
@@ -94,6 +94,7 @@ export function parseTodos(text: string, existing: TodoItem[]): TodoItem[] {
       id: crypto.randomUUID(),
       title,
       completionCount: Math.max(0, Math.floor(Number(rawCount)) || 0),
+      completed: rawCompleted.trim() === "완료",
       createdAt: now - items.length,
     });
   }

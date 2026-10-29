@@ -121,7 +121,7 @@ describe("TodoList", () => {
     const bytes = new Uint8Array(await lastBlob!.arrayBuffer());
     // 엑셀이 한글을 읽도록 UTF-8 BOM으로 시작한다.
     expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
-    expect(new TextDecoder().decode(bytes)).toBe("할 일,완주 횟수\n글쓰기,0");
+    expect(new TextDecoder().decode(bytes)).toBe("할 일,완주 횟수,완료 여부\n글쓰기,0,미완료");
     clickSpy.mockRestore();
     vi.unstubAllGlobals();
   });
@@ -164,7 +164,7 @@ describe("TodoList", () => {
     fireEvent.click(screen.getByRole("button", { name: "클립보드로 복사" }));
 
     expect(writeText).toHaveBeenCalledWith(
-      '할 일,완주 횟수\n"읽기, ""메모""",0\n글쓰기,1'
+      '할 일,완주 횟수,완료 여부\n"읽기, ""메모""",0,미완료\n글쓰기,1,미완료'
     );
     expect(await screen.findByRole("button", { name: "복사됨" })).toBeInTheDocument();
     vi.unstubAllGlobals();

@@ -97,11 +97,12 @@ export function MemoPad() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div data-help-root className="flex min-h-0 flex-1 flex-col">
       <MemoToolbar
         doc={doc}
         saving={saving}
         listOpen={listOpen}
+        hasSaved={library.saved.length > 0 || library.temp !== null}
         narrowView={narrowView}
         onChange={update}
         onTogglePreview={() => setNarrowView((view) => view === "edit" ? "preview" : "edit")}

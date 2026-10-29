@@ -8,6 +8,7 @@ import { UploadButton } from "@/components/upload-button";
 
 import { memoFile } from "../lib/download";
 import type { MemoDoc, MemoFormat } from "../lib/storage";
+import { MemoHelp } from "./memo-help";
 
 const FORMATS: MemoFormat[] = ["txt", "md"];
 
@@ -15,6 +16,7 @@ type Props = {
   doc: MemoDoc;
   saving: boolean;
   listOpen: boolean;
+  hasSaved?: boolean;
   narrowView: "edit" | "preview";
   onChange: (doc: MemoDoc) => void;
   onTogglePreview: () => void;
@@ -24,12 +26,12 @@ type Props = {
 };
 
 export function MemoToolbar({
-  doc, saving, listOpen, narrowView,
+  doc, saving, listOpen, narrowView, hasSaved = false,
   onChange, onTogglePreview, onToggleList, onSave, onImport,
 }: Props) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2">
-      <div role="tablist" aria-label="형식" className="flex gap-1">
+      <div data-memo-help="format" role="tablist" aria-label="형식" className="flex gap-1">
         {FORMATS.map((format) => (
           <Button
             key={format}
@@ -45,7 +47,8 @@ export function MemoToolbar({
         ))}
       </div>
       <div className="flex flex-wrap items-center justify-end gap-1">
-        <SaveStatus saving={saving} className="mr-1" />
+        <MemoHelp key={listOpen ? "library" : "editor"} listOpen={listOpen} hasSaved={hasSaved} />
+        <span data-memo-help="autosave" className="inline-flex"><SaveStatus saving={saving} className="mr-1" /></span>
         {doc.format === "md" && (
           <Button
             type="button"
@@ -60,6 +63,7 @@ export function MemoToolbar({
           </Button>
         )}
         <Button
+          data-memo-help="save"
           type="button" variant="ghost" size="icon"
           className="text-muted-foreground"
           aria-label="메모 저장" title="메모 저장" onClick={onSave}
@@ -67,6 +71,7 @@ export function MemoToolbar({
           <Save aria-hidden="true" />
         </Button>
         <Button
+          data-memo-help="library"
           type="button"
           variant="ghost"
           size="icon"
@@ -79,9 +84,9 @@ export function MemoToolbar({
           {listOpen ? <PencilLine aria-hidden="true" /> : <List aria-hidden="true" />}
         </Button>
         <span aria-hidden="true" className="mx-1 h-5 w-px bg-border" />
-        <CopyButton getText={() => doc.text} />
-        <DownloadButton getFile={() => memoFile(doc.text, doc.format)} />
-        <UploadButton accept=".txt,.md,text/plain,text/markdown" label="파일 불러오기" onText={onImport} />
+        <span data-memo-help="copy" className="inline-flex"><CopyButton getText={() => doc.text} /></span>
+        <span data-memo-help="download" className="inline-flex"><DownloadButton getFile={() => memoFile(doc.text, doc.format)} /></span>
+        <span data-memo-help="import" className="inline-flex"><UploadButton accept=".txt,.md,text/plain,text/markdown" label="파일 불러오기" onText={onImport} /></span>
       </div>
     </div>
   );

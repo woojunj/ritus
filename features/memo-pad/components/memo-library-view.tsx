@@ -35,9 +35,9 @@ export function MemoLibraryView({ library, onLoad, onDelete }: Props) {
   useKeyShortcut("/", hasSaved, openSearch);
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
+    <div data-memo-help="saved" className="min-h-0 flex-1 overflow-y-auto">
       {hasSaved && (
-        <div className="flex items-center gap-1 px-4 pt-4">
+        <div data-memo-help="search" className="flex items-center gap-1 px-4 pt-4">
           {searchOpen ? (
             <>
               <Input

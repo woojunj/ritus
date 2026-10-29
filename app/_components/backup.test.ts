@@ -22,6 +22,20 @@ beforeEach(() => {
 });
 
 describe("전체 백업", () => {
+  test("할 일 완료 체크를 백업하고 복원하며 이전 자료의 누락 값은 미체크로 읽는다", () => {
+    const checked = { ...SAMPLE, todos: [{ ...SAMPLE.todos[0], completed: true }] };
+    const parsed = parseBackup(backupFile(checked).text)!;
+    expect(parsed.backup.todos[0]).toMatchObject({ completed: true, completionCount: 2 });
+    expect(backupIssueSummary(parsed.issues)).toBeNull();
+    restoreBackup(parsed.backup);
+    expect(currentBackup().todos[0].completed).toBe(true);
+
+    const legacy = parseBackup(backupFile(SAMPLE).text)!;
+    restoreBackup(legacy.backup);
+    expect(currentBackup().todos[0].completed ?? false).toBe(false);
+    expect(currentBackup().todos[0]).toMatchObject({ title: "글쓰기", completionCount: 2 });
+    expect(backupIssueSummary(legacy.issues)).toBeNull();
+  });
   test("저장한 파일을 다시 읽으면 같은 내용이 돌아온다", () => {
     const file = backupFile(SAMPLE, new Date(2026, 9, 13));
 

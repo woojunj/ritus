@@ -20,8 +20,10 @@ import { Input } from "@/components/ui/input";
 import { UploadButton } from "@/components/upload-button";
 import { containsAllTerms, searchTerms } from "@/lib/search";
 import { useKeyShortcut } from "@/lib/use-key-shortcut";
+import { cn } from "@/lib/utils";
 
 import { parseTodos, todosFile, todosToCsv } from "../lib/csv";
+import { TodoHelp } from "./todo-help";
 import {
   saveItems,
   subscribeTodos,
@@ -62,6 +64,7 @@ export function TodoList({
       id: crypto.randomUUID(),
       title: trimmed,
       completionCount: 0,
+      completed: false,
       createdAt: Date.now(),
     };
     saveItems([item, ...items]);
@@ -86,6 +89,10 @@ export function TodoList({
     }
   }
 
+  function toggleCompleted(id: string) {
+    saveItems(items.map(item => item.id === id ? { ...item, completed: !item.completed } : item));
+  }
+
   // 검색은 목록에서만 쓴다. 할 일 카드를 눌러 세션을 시작하면 검색 칸과 검색어를 지운다.
   function closeSearch() {
     setSearchOpen(false);
@@ -106,6 +113,7 @@ export function TodoList({
 
   // 카드를 누를 때와 같은 시작 흐름. 세션이 도는 중이면 먼저 확인을 받는다.
   function startItem(item: TodoItem) {
+    if (item.completed) return;
     if (shouldConfirmStart?.(item)) {
       setPendingStart(item);
     } else {
@@ -117,14 +125,15 @@ export function TodoList({
   // 방향키로 고른 카드의 자리. 목록이 줄어 범위를 넘으면 보이지 않는 것으로 본다.
   const [highlight, setHighlight] = useState<number | null>(null);
   const highlighted =
-    highlight !== null && highlight < visibleItems.length ? highlight : null;
-  const keyboardOn = !isEditing && pendingStart === null && visibleItems.length > 0;
+    highlight !== null && highlight < visibleItems.length && !visibleItems[highlight].completed ? highlight : null;
+  const activeIndexes = visibleItems.flatMap((item, index) => item.completed ? [] : [index]);
+  const keyboardOn = !isEditing && pendingStart === null && activeIndexes.length > 0;
 
   useKeyShortcut("ArrowDown", keyboardOn, () => {
-    setHighlight((current) => Math.min((current ?? -1) + 1, visibleItems.length - 1));
+    setHighlight(current => activeIndexes.find(index => index > (current ?? -1)) ?? activeIndexes[activeIndexes.length - 1]);
   }, { onlyWhenNothingFocused: true });
   useKeyShortcut("ArrowUp", keyboardOn, () => {
-    setHighlight((current) => Math.max((current ?? 0) - 1, 0));
+    setHighlight(current => activeIndexes.findLast(index => index < (current ?? 0)) ?? activeIndexes[0]);
   }, { onlyWhenNothingFocused: true });
   useKeyShortcut(" ", keyboardOn, () => {
     if (highlighted !== null) startItem(visibleItems[highlighted]);
@@ -138,12 +147,13 @@ export function TodoList({
   }, [highlighted]);
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div data-help-root className="flex min-h-full flex-col">
       {/* 본문 */}
-      <main className="flex flex-1 flex-col items-center px-4 py-8">
+      <div className="flex flex-1 flex-col items-center px-4 py-8">
         <div className="flex w-full max-w-md flex-col gap-6">
           {/* 입력 폼 */}
           <form
+            data-todo-help="add"
             onSubmit={(e) => {
               e.preventDefault();
               handleAdd();
@@ -168,6 +178,7 @@ export function TodoList({
             >
               <Plus aria-hidden="true" />
             </Button>
+            <TodoHelp key={`${items.length > 0}-${visibleItems.length > 0}`} hasItems={items.length > 0} hasVisibleItems={visibleItems.length > 0} />
           </form>
 
           {/* 빈 상태 */}
@@ -179,11 +190,11 @@ export function TodoList({
               />
               <p className="text-sm">할 일을 추가하면 여기에 나타납니다</p>
               {/* 목록이 비어 있을 때도 내려받아 둔 파일로 시작할 수 있게 한다. */}
-              <UploadButton
+              <span data-todo-help="import" className="inline-flex"><UploadButton
                 accept=".csv,text/csv"
                 label="할 일 불러오기"
                 onText={handleImport}
-              />
+              /></span>
             </div>
           )}
 
@@ -192,7 +203,7 @@ export function TodoList({
             <div className="flex flex-col gap-2">
               {/* 목록 상단 정보 및 편집 토글 */}
               <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-1">
+                <div data-todo-help="search" className="flex items-center gap-1">
                   <span className="text-xs font-medium text-muted-foreground">
                     할 일 {items.length}개
                   </span>
@@ -212,24 +223,25 @@ export function TodoList({
                 <div className="flex items-center gap-2">
                   {!isEditing && (
                     <span className="text-xs text-muted-foreground/60 hidden sm:inline">
-                      카드를 터치하면 타이머 시작
+                      카드를 누르면 타이머 설정
                     </span>
                   )}
-                  <CopyButton
+                  <span data-todo-help="copy" className="inline-flex"><CopyButton
                     getText={() => todosToCsv(items)}
                     className="size-7 text-muted-foreground hover:text-foreground"
-                  />
-                  <DownloadButton
+                  /></span>
+                  <span data-todo-help="download" className="inline-flex"><DownloadButton
                     getFile={() => todosFile(items)}
                     className="size-7 text-muted-foreground hover:text-foreground"
-                  />
-                  <UploadButton
+                  /></span>
+                  <span data-todo-help="import" className="inline-flex"><UploadButton
                     accept=".csv,text/csv"
                     label="할 일 불러오기"
                     onText={handleImport}
                     className="size-7 text-muted-foreground hover:text-foreground"
-                  />
+                  /></span>
                   <Button
+                    data-todo-help="edit"
                     variant="ghost"
                     size="sm"
                     className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
@@ -285,14 +297,26 @@ export function TodoList({
                       data-highlighted={isHighlighted}
                       className={`flex items-stretch rounded-xl border bg-card shadow-xs transition-shadow hover:shadow-md overflow-hidden${isHighlighted ? " ring-2 ring-ring" : ""}`}
                     >
-                      {/* 카드 메인 영역: 타이머 시작을 위한 넓은 탭 영역 (터치 친화적) */}
+                      <label data-todo-help={index === 0 ? "check" : undefined} className="flex w-11 shrink-0 cursor-pointer items-center justify-center" title={item.completed ? "체크 해제해 다시 활성화" : "완료로 체크"}>
+                        <input
+                          type="checkbox"
+                          aria-label={`"${item.title}" 완료`}
+                          checked={!!item.completed}
+                          onChange={() => toggleCompleted(item.id)}
+                          className="size-4 cursor-pointer accent-primary"
+                        />
+                      </label>
+                      {/* 체크한 항목은 남겨 두되 타이머 진입만 막는다. */}
                       <Link
+                        data-todo-help={index === 0 ? "card" : undefined}
                         href="/"
                         onClick={(e) => {
                           e.preventDefault();
                           startItem(item);
                         }}
-                        className="group flex flex-1 items-center gap-3 px-4 py-3.5 hover:bg-accent/40 active:bg-accent/60 transition-colors min-w-0"
+                        aria-disabled={!!item.completed}
+                        tabIndex={item.completed ? -1 : 0}
+                        className={cn("group flex min-w-0 flex-1 items-center gap-3 px-3 py-3.5 transition-colors", item.completed ? "cursor-default text-muted-foreground" : "hover:bg-accent/40 active:bg-accent/60")}
                         aria-label={`"${item.title}" 타이머 시작`}
                         title={`"${item.title}" 타이머 시작`}
                       >
@@ -300,7 +324,7 @@ export function TodoList({
                           className="h-4 w-4 text-muted-foreground/70 shrink-0 group-hover:text-foreground transition-colors"
                           aria-hidden="true"
                         />
-                        <span className="flex-1 min-w-0 truncate text-sm font-medium leading-snug">
+                        <span className={cn("min-w-0 flex-1 truncate text-sm font-medium leading-snug", item.completed && "line-through opacity-60")}>
                           {item.title}
                         </span>
                         {item.completionCount > 0 && (
@@ -361,7 +385,7 @@ export function TodoList({
             </div>
           )}
         </div>
-      </main>
+      </div>
 
       <AlertDialog
         open={pendingStart !== null}

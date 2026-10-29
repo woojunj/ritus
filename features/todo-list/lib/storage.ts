@@ -5,6 +5,8 @@ export type TodoItem = {
   title: string;
   /** 타이머 완주로 쌓인 횟수 */
   completionCount: number;
+  /** 사용자가 직접 체크한 완료 상태. 이전 저장 자료의 누락 값은 미완료다. */
+  completed?: boolean;
   createdAt: number;
 };
 
@@ -41,13 +43,15 @@ export function normalizeTodo(value: unknown): { item: TodoItem; repaired: boole
   const count = raw.completionCount;
   const countOk = Number.isInteger(count) && (count as number) >= 0;
   const createdOk = Number.isFinite(raw.createdAt);
+  const completedOk = raw.completed === undefined || typeof raw.completed === "boolean";
   return {
     item: {
       id: idOk ? (raw.id as string) : crypto.randomUUID(),
       title: raw.title,
       completionCount: countOk ? (count as number) : 0,
       createdAt: createdOk ? (raw.createdAt as number) : Date.now(),
+      ...(typeof raw.completed === "boolean" ? { completed: raw.completed } : {}),
     },
-    repaired: !idOk || !countOk || !createdOk,
+    repaired: !idOk || !countOk || !createdOk || !completedOk,
   };
 }
