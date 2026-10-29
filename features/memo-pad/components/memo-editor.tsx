@@ -25,7 +25,7 @@ export function MemoEditor({
   }
 
   return (
-    <div className={cn("grid min-h-0 flex-1", isMd && "md:grid-cols-2")}>
+    <div data-memo-help="content" className={cn("grid min-h-0 flex-1", isMd && "md:grid-cols-2")}>
       <textarea
         ref={textareaRef}
         aria-label="메모 본문"

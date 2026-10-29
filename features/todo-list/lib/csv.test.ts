@@ -42,6 +42,17 @@ describe("수식 주입 막기", () => {
 });
 
 describe("예전에 내려받은 파일", () => {
+  test("체크 정보가 없는 이전 파일은 미체크로 불러온다", () => {
+    const items = parseTodos("할 일,완주 횟수\n읽기,3", []);
+    expect(items[0]).toMatchObject({ title: "읽기", completionCount: 3, completed: false });
+  });
+
+  test("새 CSV는 체크 상태와 완주 횟수를 함께 되살린다", () => {
+    const items = parseTodos(todosToCsv([{ ...item("읽기"), completed: true }, item("쓰기")]), []);
+    expect(items.map(todo => [todo.title, todo.completionCount, todo.completed])).toEqual([
+      ["읽기", 1, true], ["쓰기", 1, false],
+    ]);
+  });
   test("'가 없는 =, - 제목은 그대로 읽힌다", () => {
     const legacy = "할 일,완주 횟수\n=SUM(A1),0\n-5,2";
 

@@ -68,15 +68,23 @@ export function GuidedHelp({ name, steps, finishLabel = "안내 마치기", targ
     const originalTop = scroller?.scrollTop ?? 0;
     const sheet = helpButton?.closest<HTMLElement>(`[${rootAttribute}]`);
     const originalPadding = sheet?.style.paddingBottom ?? "";
+    const originalMinHeight = sheet?.style.minHeight ?? "";
     // 마지막 칸도 설명 상자 위로 올릴 수 있도록 안내 중에만 여유를 둔다.
-    if (sheet) sheet.style.paddingBottom = "65dvh";
+    if (sheet) {
+      // 메모장처럼 남는 높이를 채우는 편집 영역도 안내 중에 줄어들지 않게 한다.
+      sheet.style.minHeight = `${sheet.getBoundingClientRect().height + innerHeight * 0.65}px`;
+      sheet.style.paddingBottom = "65dvh";
+    }
     modal.showModal();
     return () => {
       modal.close();
       if (scroller) {
         scroller.scrollTop = originalTop;
       }
-      if (sheet) sheet.style.paddingBottom = originalPadding;
+      if (sheet) {
+        sheet.style.paddingBottom = originalPadding;
+        sheet.style.minHeight = originalMinHeight;
+      }
       helpButton?.focus({ preventScroll: true });
     };
   }, [open, rootAttribute]);

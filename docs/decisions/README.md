@@ -6,6 +6,7 @@
 - [화면 이동과 세션 유지](navigation.md) — Read when 화면 이동, 한 줄 바, 할 일 선택과 세션의 관계를 바꿀 때.
 - [아이콘과 반응형 배치](interface.md) — Read when 조작 표시, 접근성 이름, 헤더나 반복 설정의 배치를 바꿀 때.
 - [메모장](memo-pad.md) — Read when 편집 문서, 저장 목록, 임시 보관과 글자 수의 의미를 바꿀 때.
+- [할 일 목록](todo-list.md) — Read when 완료 체크·비활성화와 완주 횟수의 관계, 체크 상태 저장을 바꿀 때.
 - [양심노트](conscience-note.md) — Read when 양식, 신호, 도표, 붙여넣기와 도우미 연계를 바꿀 때.
 - [목록 검색과 단축키](search-and-keyboard.md) — Read when 검색 대상과 일치 규칙, 검색 상태 수명, 키보드 동작을 바꿀 때.
 - [저장과 백업](storage-and-backup.md) — Read when 자동 저장, 전체 백업, 화면별 파일 불러오기 규칙을 바꿀 때.
