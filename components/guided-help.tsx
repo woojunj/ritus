@@ -17,12 +17,13 @@ interface GuidedHelpProps {
   targetAttribute?: string;
   rootAttribute?: string;
   highlightTestId?: string;
+  triggerLabel?: string;
 }
 
 type Highlight = { x: number; y: number; width: number; height: number; viewportWidth: number; viewportHeight: number; panelTop: number };
 
 // 실제 화면을 비추되, 안내 자체는 대상 기능을 실행하지 않는다.
-export function GuidedHelp({ name, steps, finishLabel = "안내 마치기", targetAttribute = "data-help", rootAttribute = "data-help-root", highlightTestId = "help-highlight" }: GuidedHelpProps) {
+export function GuidedHelp({ name, steps, finishLabel = "안내 마치기", targetAttribute = "data-help", rootAttribute = "data-help-root", highlightTestId = "help-highlight", triggerLabel }: GuidedHelpProps) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const current = steps[step];
@@ -37,6 +38,7 @@ export function GuidedHelp({ name, steps, finishLabel = "안내 마치기", targ
   const id = useId();
 
   useEffect(() => {
+    if (triggerLabel) return;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     // Strict Mode의 효과 재실행에서도 첫 표시와 5초 종료가 한 쌍으로 실행된다.
     const frame = requestAnimationFrame(() => {
@@ -58,7 +60,7 @@ export function GuidedHelp({ name, steps, finishLabel = "안내 마치기", targ
       cancelAnimationFrame(frame);
       if (timeout) clearTimeout(timeout);
     };
-  }, [hintKey]);
+  }, [hintKey, triggerLabel]);
 
   useEffect(() => {
     if (!open || !dialog.current) return;
@@ -127,9 +129,10 @@ export function GuidedHelp({ name, steps, finishLabel = "안내 마치기", targ
   }, [open, current, targetAttribute]);
 
   return <>
-    <Button ref={trigger} type="button" variant="ghost" size="icon" className="relative isolate" title={`${name} 도움말`} aria-label={`${name} 도움말`} onClick={() => { hintDismissed.current = true; setDiscovering(false); setStep(0); setOpen(true); }}>
+    <Button ref={trigger} type="button" variant={triggerLabel ? "outline" : "ghost"} size={triggerLabel ? "default" : "icon"} className="relative isolate" title={triggerLabel ?? `${name} 도움말`} aria-label={triggerLabel ?? `${name} 도움말`} onClick={() => { hintDismissed.current = true; setDiscovering(false); setStep(0); setOpen(true); }}>
       {discovering && <span aria-hidden="true" data-testid="help-discovery-ring" data-force-motion={previewing || undefined} className="help-discovery-ring" />}
       <CircleHelp aria-hidden="true" className="relative" />
+      {triggerLabel}
     </Button>
     {open && <dialog ref={dialog} aria-labelledby={`${id}-title`} aria-describedby={`${id}-description`} onCancel={(event) => { event.preventDefault(); setOpen(false); }} className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none overflow-hidden border-0 bg-transparent p-0 text-foreground outline-none backdrop:bg-transparent">
       {highlight && <svg aria-hidden="true" className="pointer-events-none absolute inset-0 size-full" viewBox={`0 0 ${highlight.viewportWidth} ${highlight.viewportHeight}`}>

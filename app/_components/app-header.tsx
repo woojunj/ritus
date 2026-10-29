@@ -48,7 +48,7 @@ export function AppHeader() {
       <span className="hidden font-heading text-lg font-semibold tracking-tight sm:inline">
         ritus
       </span>
-      <nav aria-label="화면 이동" className="flex items-center gap-1">
+      <nav data-header-help="navigation" aria-label="화면 이동" className="flex items-center gap-1">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const current = isCurrent(href, pathname);
           return (
@@ -73,6 +73,7 @@ export function AppHeader() {
       <div className="flex items-center gap-1 lg:justify-end">
         <Link
           href="/help"
+          data-header-help="manual"
           aria-label="도움말"
           title="도움말"
           aria-current={pathname === "/help" ? "page" : undefined}
@@ -83,10 +84,10 @@ export function AppHeader() {
         >
           <CircleQuestionMark className="h-4 w-4" aria-hidden="true" />
         </Link>
-        <BackupButton />
-        <ThemeToggle />
-        <TextSizeToggle />
-        <MuteToggle />
+        <span className="inline-flex" data-header-help="backup"><BackupButton /></span>
+        <span className="inline-flex" data-header-help="theme"><ThemeToggle /></span>
+        <span className="inline-flex" data-header-help="size"><TextSizeToggle /></span>
+        <span className="inline-flex" data-header-help="sound"><MuteToggle /></span>
       </div>
     </header>
   );
