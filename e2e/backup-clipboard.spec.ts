@@ -12,7 +12,8 @@ test("파일 없이 큰 한국어 백업을 복사·붙여넣고 확인 후 복�
   await page.reload();
   await page.getByRole("button", { name: "전체 백업", exact: true }).click();
   const dialog = page.getByRole("alertdialog");
-  await expect(dialog).toContainText("1MB 이상의 큰 자료");
+  await expect(dialog).toContainText("백업 크기:");
+  await expect(dialog).not.toContainText("1MB 이상의 큰 자료");
   await dialog.getByRole("button", { name: "클립보드에 복사", exact: true }).click();
   await expect(dialog).toContainText("전체 백업을 복사했습니다");
   const text = await page.evaluate(() => navigator.clipboard.readText());
@@ -44,7 +45,8 @@ test("클립보드 거절 시 직접 복사·붙여넣기와 오류 복구를 �
   await page.getByRole("button", { name: "전체 백업", exact: true }).click();
   const dialog = page.getByRole("alertdialog");
   await dialog.getByRole("button", { name: "클립보드에 복사", exact: true }).click();
-  await expect(dialog).toContainText("자동 복사를 사용할 수 없습니다");
+  await expect(dialog).toContainText("자동 복사에 실패했습니다");
+  await expect(dialog).toContainText("기능별로 나눠 옮겨 보세요");
   await page.screenshot({ path: "test-results/backup-clipboard-manual.png" });
   const text = await dialog.getByLabel("직접 복사할 전체 백업").inputValue();
   expect(JSON.parse(text).memo.text).toBe("옮길 한국어 글");

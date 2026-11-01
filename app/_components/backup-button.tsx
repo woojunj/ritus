@@ -75,7 +75,7 @@ export function BackupButton() {
       setMessage("전체 백업을 복사했습니다. 옮길 곳의 ‘전체 백업 → 붙여넣기’에서 복원하세요.");
     } catch {
       setTransfer("copy");
-      setMessage("자동 복사를 사용할 수 없습니다. 아래 글을 전체 선택한 뒤 직접 복사하세요. 긴 글은 일부가 빠지지 않았는지 옮길 곳에서 확인하세요.");
+      setMessage("자동 복사에 실패했습니다. 브라우저의 클립보드 접근 제한이나 자료 크기 때문일 수 있습니다. 아래 글을 전체 선택한 뒤 직접 복사해 보세요.");
     }
   }
 
@@ -157,7 +157,6 @@ export function BackupButton() {
               </AlertDialogHeader>
               <div className="flex flex-col gap-3 text-sm">
                 <p>백업 크기: {size.characters.toLocaleString()}자 · {size.bytes.toLocaleString()}바이트</p>
-                {size.large && <p role="status" className="text-muted-foreground">1MB 이상의 큰 자료입니다. 기기나 옮기는 앱에 따라 복사·붙여넣기가 실패하거나 글이 잘릴 수 있습니다. 파일 저장이 가능하면 파일을 권합니다. 이 표시는 복사 한도가 아닙니다.</p>}
                 <div className="grid gap-2 sm:grid-cols-2">
                   <Button type="button" variant="outline" onClick={copyBackup}>클립보드에 복사</Button>
                   <Button type="button" variant="outline" onClick={pasteBackup}>붙여넣기</Button>
@@ -167,6 +166,8 @@ export function BackupButton() {
                   <label htmlFor="backup-copy-text">직접 복사할 전체 백업</label>
                   <textarea id="backup-copy-text" readOnly value={exportText} onFocus={event => event.currentTarget.select()} className="h-32 w-full rounded-md border bg-background p-2 text-sm" />
                   <p className="text-muted-foreground">이 칸을 누르면 전체 글이 선택됩니다. 기기의 복사 메뉴를 사용하세요.</p>
+                  <p className="text-muted-foreground">직접 복사도 어렵고 자료가 많다면 기능별로 나눠 옮겨 보세요. 양심노트는 한 장씩, 메모장은 저장한 글을 하나씩 열어 복사할 수 있습니다. 할 일은 목록만 따로 복사해 보관할 수 있습니다.</p>
+                  <p className="text-muted-foreground">기능별 복사는 전체 백업 복원과 달라 일부 정보는 직접 옮겨야 합니다. 파일 저장이 가능한 환경에서는 각 화면의 파일 저장도 사용할 수 있습니다. 옮긴 내용을 확인할 때까지 원본을 남겨 두세요.</p>
                 </div>}
                 {transfer === "paste" && <div className="flex flex-col gap-2">
                   <label htmlFor="backup-paste-text">전체 백업 글 붙여넣기</label>

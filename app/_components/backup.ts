@@ -56,10 +56,10 @@ export function backupFile(backup: Backup, now: Date = new Date()): TextFile {
   };
 }
 
-/** 복사 한도가 아닌, 큰 자료를 미리 안내하기 위한 크기 추정값. */
+/** 옮길 백업 글의 글자 수와 UTF-8 바이트 수. 복사 가능 여부를 판단하지 않는다. */
 export function backupTextSize(text: string) {
   const bytes = new TextEncoder().encode(text).byteLength;
-  return { characters: text.length, bytes, large: bytes >= 1_000_000 };
+  return { characters: text.length, bytes };
 }
 
 /** 백업 파일에서 모양이 맞지 않아 바로잡거나 건너뛴 항목의 수. */
