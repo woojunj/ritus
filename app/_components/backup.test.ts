@@ -4,6 +4,7 @@ import {
   backupFile,
   backupIssueSummary,
   backupSummary,
+  backupTextSize,
   currentBackup,
   parseBackup,
   restoreBackup,
@@ -22,6 +23,10 @@ beforeEach(() => {
 });
 
 describe("전체 백업", () => {
+  test("한국어의 실제 바이트 수를 세되 복사 한도로 판단하지 않는다", () => {
+    expect(backupTextSize("가나다")).toEqual({ characters: 3, bytes: 9 });
+    expect(backupTextSize("가".repeat(333334))).toEqual({ characters: 333334, bytes: 1000002 });
+  });
   test("할 일 완료 체크를 백업하고 복원하며 이전 자료의 누락 값은 미체크로 읽는다", () => {
     const checked = { ...SAMPLE, todos: [{ ...SAMPLE.todos[0], completed: true }] };
     const parsed = parseBackup(backupFile(checked).text)!;
