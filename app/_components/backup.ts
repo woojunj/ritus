@@ -56,6 +56,12 @@ export function backupFile(backup: Backup, now: Date = new Date()): TextFile {
   };
 }
 
+/** 복사 한도가 아닌, 큰 자료를 미리 안내하기 위한 크기 추정값. */
+export function backupTextSize(text: string) {
+  const bytes = new TextEncoder().encode(text).byteLength;
+  return { characters: text.length, bytes, large: bytes >= 1_000_000 };
+}
+
 /** 백업 파일에서 모양이 맞지 않아 바로잡거나 건너뛴 항목의 수. */
 export type BackupIssues = {
   notesRepaired: number;
@@ -169,5 +175,7 @@ export function backupSummary(backup: Backup): string {
     `양심노트 ${backup.conscienceNotes.length}장`,
     `할 일 ${backup.todos.length}개`,
     memoLength > 0 ? `메모 ${memoLength}자` : "메모 없음",
+    ...(backup.memoLibrary.saved.length > 0 ? [`저장 메모 ${backup.memoLibrary.saved.length}개`] : []),
+    ...(backup.memoLibrary.temp ? ["임시 보관 메모 있음"] : []),
   ].join(", ");
 }

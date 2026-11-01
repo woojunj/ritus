@@ -82,7 +82,7 @@ export function InstallGuide({ inline = false }: { inline?: boolean }) {
         <div className="flex flex-col gap-3 text-sm leading-relaxed">
           <p>카카오톡 등 앱 안의 브라우저에서는 백업 파일 다운로드도 제한될 수 있습니다. 가능하면 글을 쓰기 전에 기기의 기본 브라우저에서 열어 주세요.</p>
           <p>다운로드가 가능하면 ‘전체 백업 → 전체 저장’으로 파일을 받고, 옮길 브라우저나 설치한 앱에서 ‘전체 백업 → 불러오기’로 복원합니다. 불러오기는 그곳의 현재 내용을 백업 내용으로 바꿉니다.</p>
-          <p>이미 쓴 내용이 있고 다운로드가 되지 않으면, 글을 직접 복사해 옮긴 내용을 확인할 때까지 원래 브라우저의 자료를 지우지 마세요.</p>
+          <p>다운로드가 어려우면 ‘전체 백업 → 클립보드에 복사’를 누르고, 옮길 브라우저에서 ‘전체 백업 → 붙여넣기’를 사용하세요. 자동 복사·붙여넣기가 막히면 창 안의 글을 직접 선택해 복사하거나 붙여넣을 수 있습니다. 옮긴 내용을 확인할 때까지 원래 브라우저의 자료를 지우지 마세요.</p>
         </div>
         <AlertDialogFooter><AlertDialogCancel>닫기</AlertDialogCancel><Button onClick={confirmStorage}>확인</Button></AlertDialogFooter>
       </AlertDialogContent>

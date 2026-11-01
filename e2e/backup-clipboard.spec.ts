@@ -1,0 +1,65 @@
+import { expect, test } from "@playwright/test";
+
+test("파일 없이 큰 한국어 백업을 복사·붙여넣고 확인 후 복원한다", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/memo");
+  await page.evaluate(() => {
+    localStorage.setItem("ritus:memo", JSON.stringify({ text: "가".repeat(400000), format: "md" }));
+    localStorage.setItem("ritus:todos", JSON.stringify([{ id: "a", title: "완료한 일", completed: true, completionCount: 3, createdAt: 1 }]));
+    localStorage.setItem("ritus:memo-library", JSON.stringify({ saved: [{ id: "saved", text: "저장한 글", format: "txt", savedAt: 1 }], temp: { id: "temp", text: "임시 글", format: "md", savedAt: 2 } }));
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "전체 백업", exact: true }).click();
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog).toContainText("1MB 이상의 큰 자료");
+  await dialog.getByRole("button", { name: "클립보드에 복사", exact: true }).click();
+  await expect(dialog).toContainText("전체 백업을 복사했습니다");
+  const text = await page.evaluate(() => navigator.clipboard.readText());
+  expect(JSON.parse(text).memo.text.length).toBe(400000);
+  expect(JSON.parse(text).todos[0]).toMatchObject({ completed: true, completionCount: 3 });
+  expect(JSON.parse(text).memoLibrary.saved[0].text).toBe("저장한 글");
+  expect(JSON.parse(text).memoLibrary.temp.text).toBe("임시 글");
+  await dialog.getByRole("button", { name: "닫기", exact: true }).click();
+  await page.getByLabel("메모 본문").fill("유지할 현재 글");
+  await page.getByRole("button", { name: "전체 백업", exact: true }).click();
+  await dialog.getByRole("button", { name: "붙여넣기", exact: true }).click();
+  await expect(dialog).toContainText("백업 글의 내용으로 바꿀까요?");
+  await dialog.getByRole("button", { name: "취소", exact: true }).click();
+  await expect(page.getByLabel("메모 본문")).toHaveValue("유지할 현재 글");
+  await page.getByRole("button", { name: "전체 백업", exact: true }).click();
+  await dialog.getByRole("button", { name: "붙여넣기", exact: true }).click();
+  await dialog.getByRole("button", { name: "바꾸기", exact: true }).click();
+  await expect(page.getByLabel("메모 본문")).toHaveValue("가".repeat(400000));
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("ritus:memo-library")!).temp.text)).toBe("임시 글");
+  await page.goto("/todos");
+  await expect(page.getByRole("checkbox", { name: '"완료한 일" 완료', exact: true })).toBeChecked();
+});
+
+test("클립보드 거절 시 직접 복사·붙여넣기와 오류 복구를 제공한다", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/memo");
+  await page.getByLabel("메모 본문").fill("옮길 한국어 글");
+  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw Error("denied"); }, readText: async () => { throw Error("denied"); } } }));
+  await page.getByRole("button", { name: "전체 백업", exact: true }).click();
+  const dialog = page.getByRole("alertdialog");
+  await dialog.getByRole("button", { name: "클립보드에 복사", exact: true }).click();
+  await expect(dialog).toContainText("자동 복사를 사용할 수 없습니다");
+  await page.screenshot({ path: "test-results/backup-clipboard-manual.png" });
+  const text = await dialog.getByLabel("직접 복사할 전체 백업").inputValue();
+  expect(JSON.parse(text).memo.text).toBe("옮길 한국어 글");
+  await dialog.getByLabel("직접 복사할 전체 백업").focus();
+  expect(await dialog.getByLabel("직접 복사할 전체 백업").evaluate((element: HTMLTextAreaElement) => element.selectionEnd - element.selectionStart)).toBe(text.length);
+  await dialog.getByRole("button", { name: "붙여넣기", exact: true }).click();
+  const input = dialog.getByLabel("전체 백업 글 붙여넣기");
+  await input.fill(text.slice(0, -3));
+  await dialog.getByRole("button", { name: "내용 확인", exact: true }).click();
+  await expect(dialog.getByRole("alert")).toContainText("ritus 전체 백업 글이 아닙니다");
+  await input.fill(text);
+  await dialog.getByRole("button", { name: "내용 확인", exact: true }).click();
+  await expect(dialog).toContainText("백업 글의 내용으로 바꿀까요?");
+  await page.screenshot({ path: "test-results/backup-clipboard-confirm.png" });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await dialog.getByRole("button", { name: "바꾸기", exact: true }).click();
+  await expect(page.getByLabel("메모 본문")).toHaveValue("옮길 한국어 글");
+});
