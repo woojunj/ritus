@@ -44,6 +44,7 @@ import { SessionBar } from "@/features/focus-timer";
 
 import { buildInfoText, readLocalGit } from "./build-info";
 import { HeaderHelp } from "./header-help";
+import { InstallGuide } from "../_components/install-guide";
 
 // 저장소의 매뉴얼을 그대로 보여 준다. 문서를 고치면 이 화면도 함께 바뀐다.
 const manual = await readFile(join(process.cwd(), "docs/manual.md"), "utf8");
@@ -129,6 +130,7 @@ export default function HelpPage() {
       <SessionBar />
       <article className="mx-auto w-full max-w-2xl space-y-3 px-4 py-8">
         <HeaderHelp />
+        <InstallGuide inline />
         {PARTS.map((part, index) => (
           <Fragment key={index}>
             {index > 0 && <HelperRequestCopy />}
