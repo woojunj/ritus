@@ -7,6 +7,7 @@ import { incrementCompletionCount } from "@/features/todo-list";
 
 import { AppHeader } from "./app-header";
 import { SaveFailureWarning } from "./save-failure-warning";
+import { InstallGuide } from "./install-guide";
 
 function handleFinish(todoId: string | undefined) {
   if (todoId) {
@@ -25,6 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {children}
         </main>
+        <InstallGuide />
       </div>
     </FocusSessionProvider>
   );
