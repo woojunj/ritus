@@ -71,3 +71,24 @@ test("브라우저 설치 이벤트가 있을 때만 직접 설치를 제공한�
   await expect(page.getByRole("alertdialog")).toHaveCount(0);
   await expect(page.getByRole("complementary", { name: "앱 설치 안내" })).toHaveCount(0);
 });
+
+for (const width of [360, 1280, 1920]) {
+  test(`설치 안내 화살표는 메시지 상자에서 도움말로 이어진다 ${width}`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/conscience");
+    await page.getByRole("complementary", { name: "저장 위치 안내" }).getByRole("button", { name: "확인", exact: true }).click();
+    await page.getByRole("button", { name: "나중에", exact: true }).click();
+    const reminder = page.getByTestId("install-reminder");
+    await expect(reminder.getByRole("status")).toBeVisible();
+    const box = (await reminder.getByRole("status").boundingBox())!;
+    const help = (await page.locator('[data-header-help="manual"]').boundingBox())!;
+    const path = await page.getByTestId("install-help-arrow").getAttribute("d");
+    const numbers = path!.match(/-?[\d.]+/g)!.map(Number);
+    expect(numbers[0]).toBeCloseTo(box.x + box.width / 2, 1);
+    expect(numbers[1]).toBeCloseTo(box.y - 8, 1);
+    expect(numbers[4]).toBeCloseTo(help.x + help.width / 2, 1);
+    expect(box.x).toBeGreaterThanOrEqual(16);
+    expect(box.x + box.width).toBeLessThanOrEqual(width - 16);
+    await page.screenshot({ path: `test-results/install-arrow-${width}.png` });
+  });
+}
