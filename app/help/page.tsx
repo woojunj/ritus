@@ -39,8 +39,10 @@ import type { Components } from "react-markdown";
 
 import { ConscienceIcon } from "@/components/conscience-icon";
 import { Markdown } from "@/components/markdown";
+import { buttonVariants } from "@/components/ui/button";
 import { HelperRequestCopy } from "@/features/conscience-note";
 import { SessionBar } from "@/features/focus-timer";
+import { cn } from "@/lib/utils";
 
 import { buildInfoText, readLocalGit } from "./build-info";
 import { HeaderHelp } from "./header-help";
@@ -129,8 +131,18 @@ export default function HelpPage() {
     <>
       <SessionBar />
       <article className="mx-auto w-full max-w-2xl space-y-3 px-4 py-8">
-        <HeaderHelp />
-        <InstallGuide inline />
+        <div className="flex flex-wrap items-center gap-2">
+          <HeaderHelp />
+          <InstallGuide inline />
+          <a
+            href="https://forms.gle/WY6VpmmqU5BuBJzx8"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(buttonVariants({ variant: "outline" }))}
+          >
+            질문·의견 보내기
+          </a>
+        </div>
         {PARTS.map((part, index) => (
           <Fragment key={index}>
             {index > 0 && <HelperRequestCopy />}
