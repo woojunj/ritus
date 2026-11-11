@@ -7,6 +7,10 @@ import {
 import {
   getLibrarySnapshot,
   getMemoSnapshot,
+  getTranscriptionSnapshot,
+  normalizeTranscription,
+  saveTranscription,
+  type TranscriptionDoc,
   normalizeLibrary,
   saveLibrary,
   saveMemo,
@@ -25,6 +29,7 @@ import { dateStamp, type TextFile } from "@/lib/download";
 export type Backup = {
   conscienceNotes: ConscienceNoteItem[];
   memo: MemoDoc;
+  transcription?: TranscriptionDoc;
   /** 저장한 메모 목록과 임시 보관본. 예전 백업에는 없어서 빈 목록으로 읽는다. */
   memoLibrary: MemoLibrary;
   todos: TodoItem[];
@@ -38,6 +43,7 @@ export function currentBackup(): Backup {
   return {
     conscienceNotes: getNotesSnapshot(),
     memo: getMemoSnapshot(),
+    transcription: getTranscriptionSnapshot(),
     memoLibrary: getLibrarySnapshot(),
     todos: getTodosSnapshot(),
   };
@@ -101,7 +107,7 @@ export function parseBackup(text: string): { backup: Backup; issues: BackupIssue
     return null;
   }
   if (typeof data !== "object" || data === null) return null;
-  const { app, conscienceNotes, memo, memoLibrary, todos } = data as Record<string, unknown>;
+  const { app, conscienceNotes, memo, memoLibrary, transcription, todos } = data as Record<string, unknown>;
   if (app !== APP) return null;
   const doc = (typeof memo === "object" && memo !== null ? memo : {}) as Partial<MemoDoc>;
   const notes = normalizeAll(conscienceNotes, normalizeNote);
@@ -114,6 +120,7 @@ export function parseBackup(text: string): { backup: Backup; issues: BackupIssue
         format: doc.format === "md" ? "md" : "txt",
       },
       memoLibrary: normalizeLibrary(memoLibrary),
+      transcription: normalizeTranscription(transcription),
       todos: todoItems.items,
     },
     issues: {
@@ -164,6 +171,7 @@ export function backupIssueSummary(issues: BackupIssues): string | null {
 export function restoreBackup(backup: Backup): void {
   saveNotes(backup.conscienceNotes);
   saveMemo(backup.memo);
+  saveTranscription(normalizeTranscription(backup.transcription));
   saveLibrary(backup.memoLibrary);
   saveItems(backup.todos);
 }
@@ -175,6 +183,7 @@ export function backupSummary(backup: Backup): string {
     `양심노트 ${backup.conscienceNotes.length}장`,
     `할 일 ${backup.todos.length}개`,
     memoLength > 0 ? `메모 ${memoLength}자` : "메모 없음",
+    ...(backup.transcription ? [`필사 ${backup.transcription.text.length}자, 원문 ${backup.transcription.source.length}자`] : []),
     ...(backup.memoLibrary.saved.length > 0 ? [`저장 메모 ${backup.memoLibrary.saved.length}개`] : []),
     ...(backup.memoLibrary.temp ? ["임시 보관 메모 있음"] : []),
   ].join(", ");

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+import { Button } from "@/components/ui/button";
 import { useSaveStatus } from "@/components/save-status";
 import { useMounted } from "@/lib/use-mounted";
 
@@ -9,6 +10,7 @@ import { MemoDialogs } from "./components/memo-dialogs";
 import { MemoEditor, MemoStatus } from "./components/memo-editor";
 import { MemoLibraryView } from "./components/memo-library-view";
 import { MemoToolbar } from "./components/memo-toolbar";
+import { Transcription } from "./components/transcription";
 import { addSaved, afterLoad, removeMemo, type MemoLibrary, type SavedMemo } from "./lib/library";
 import {
   getLibraryServerSnapshot, getLibrarySnapshot, saveLibrary, subscribeLibrary,
@@ -21,6 +23,19 @@ const NOTICE_MS = 3000;
 
 // 저장과 확인이 필요한 동작을 조합하고 화면 표시는 내부 컴포넌트에 맡긴다.
 export function MemoPad() {
+  const [mode, setMode] = useState<"normal" | "transcription">("normal");
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div role="group" aria-label="메모장 모드" className="flex gap-1 border-b px-4 py-2">
+        <Button variant={mode === "normal" ? "secondary" : "ghost"} aria-pressed={mode === "normal"} onClick={() => setMode("normal")}>일반</Button>
+        <Button variant={mode === "transcription" ? "secondary" : "ghost"} aria-pressed={mode === "transcription"} onClick={() => setMode("transcription")}>필사</Button>
+      </div>
+      {mode === "normal" ? <NormalMemoPad /> : <Transcription />}
+    </div>
+  );
+}
+
+function NormalMemoPad() {
   const doc = useSyncExternalStore(subscribeMemo, getMemoSnapshot, getMemoServerSnapshot);
   const library = useSyncExternalStore(subscribeLibrary, getLibrarySnapshot, getLibraryServerSnapshot);
   // 저장된 글이 hydration으로 들어오기 전의 입력은 막는다.

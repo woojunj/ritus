@@ -1,3 +1,5 @@
+import { DEFAULT_SOURCE } from "@/features/memo-pad/lib/transcription-storage";
+
 import { beforeEach, describe, expect, test } from "vitest";
 
 import {
@@ -46,7 +48,7 @@ describe("전체 백업", () => {
 
     expect(file.name).toBe("ritus-backup-20261013.json");
     const parsed = parseBackup(file.text);
-    expect(parsed?.backup).toEqual(SAMPLE);
+    expect(parsed?.backup).toEqual({ ...SAMPLE, transcription: { source: DEFAULT_SOURCE, text: "" } });
     expect(backupIssueSummary(parsed!.issues)).toBeNull();
   });
 
@@ -126,7 +128,7 @@ describe("전체 백업", () => {
     });
     restoreBackup(SAMPLE);
 
-    expect(currentBackup()).toEqual(SAMPLE);
+    expect(currentBackup()).toEqual({ ...SAMPLE, transcription: { source: DEFAULT_SOURCE, text: "" } });
   });
 
   test("무엇이 들었는지 한 줄로 적는다", () => {
@@ -153,4 +155,15 @@ describe("저장한 메모 백업", () => {
 
     expect(parseBackup(legacy)?.backup.memoLibrary).toEqual({ saved: [], temp: null });
   });
+});
+
+
+test("필사 원문과 본문을 백업하고 예전 백업 복원 시 비운다", () => {
+  const transcription = { source: "내 원문", text: "필사한 글" };
+  const parsed = parseBackup(backupFile({ ...SAMPLE, transcription }).text)!;
+  expect(parsed.backup.transcription).toEqual(transcription);
+  restoreBackup(parsed.backup);
+  expect(currentBackup().transcription).toEqual(transcription);
+  restoreBackup(parseBackup(backupFile(SAMPLE).text)!.backup);
+  expect(currentBackup().transcription).toEqual({ source: DEFAULT_SOURCE, text: "" });
 });

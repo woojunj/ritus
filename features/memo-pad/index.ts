@@ -4,3 +4,5 @@ export { getMemoSnapshot, saveMemo } from "./lib/storage";
 export type { MemoLibrary, SavedMemo } from "./lib/library";
 export { EMPTY_LIBRARY, normalizeLibrary } from "./lib/library";
 export { getLibrarySnapshot, saveLibrary } from "./lib/library-storage";
+export type { TranscriptionDoc } from "./lib/transcription-storage";
+export { getTranscriptionSnapshot, saveTranscription, normalizeTranscription } from "./lib/transcription-storage";
