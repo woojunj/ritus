@@ -1,0 +1,36 @@
+.container {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.compactToolbar {
+  display: none;
+}
+
+@media (width < 48rem) {
+  .expanded {
+    position: fixed;
+    inset-inline: 0;
+    top: var(--visible-top, 0px);
+    height: var(--visible-height, 100dvh);
+    z-index: 50;
+    background: var(--background);
+  }
+
+  .expanded .compactToolbar {
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  .expanded .details,
+  .expanded .sourceToolbar,
+  .expanded .status {
+    display: none;
+  }
+
+  .expanded .panes {
+    grid-template-rows: minmax(0, 2fr) minmax(0, 3fr);
+  }
+}
