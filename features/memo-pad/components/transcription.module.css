@@ -31,6 +31,6 @@
   }
 
   .expanded .panes {
-    grid-template-rows: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
   }
 }
