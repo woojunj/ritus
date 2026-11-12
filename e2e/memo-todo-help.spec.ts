@@ -27,12 +27,12 @@ for (const viewport of [{ width: 360, height: 780 }, { width: 1280, height: 900 
     await body.fill("# 회의 정리\n내일 다시 확인할 내용");
     await page.getByRole("tab", { name: "md", exact: true }).click();
     const before = await page.evaluate(() => localStorage.getItem("ritus:memo"));
-    await walk(page, "메모장", "data-memo-help", ["format", "content", "autosave", "save", "library", "copy", "download", "import"], `test-results/memo-help-${viewport.width}.png`);
+    await walk(page, "메모장", "data-memo-help", ["mode", "format", "content", "autosave", "save", "library", "copy", "download", "import"], `test-results/memo-help-${viewport.width}.png`);
     expect(await page.evaluate(() => localStorage.getItem("ritus:memo"))).toBe(before);
     await expect(body).toHaveValue("# 회의 정리\n내일 다시 확인할 내용");
     if (viewport.width < 768) {
       await page.getByRole("button", { name: "프리뷰 보기", exact: true }).click();
-      await walk(page, "메모장", "data-memo-help", ["format", "content", "autosave", "save", "library", "copy", "download", "import"]);
+      await walk(page, "메모장", "data-memo-help", ["mode", "format", "content", "autosave", "save", "library", "copy", "download", "import"]);
       await expect(page.getByRole("button", { name: "편집하기", exact: true })).toBeVisible();
       await page.getByRole("button", { name: "편집하기", exact: true }).click();
     }

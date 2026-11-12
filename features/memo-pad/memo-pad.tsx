@@ -26,7 +26,7 @@ export function MemoPad() {
   const [mode, setMode] = useState<"normal" | "transcription">("normal");
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div role="group" aria-label="메모장 모드" className="flex gap-1 border-b px-4 py-2">
+      <div data-memo-help="mode" role="group" aria-label="메모장 모드" className="flex gap-1 border-b px-4 py-2">
         <Button variant={mode === "normal" ? "secondary" : "ghost"} aria-pressed={mode === "normal"} onClick={() => setMode("normal")}>일반</Button>
         <Button variant={mode === "transcription" ? "secondary" : "ghost"} aria-pressed={mode === "transcription"} onClick={() => setMode("transcription")}>필사</Button>
       </div>

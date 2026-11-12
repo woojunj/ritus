@@ -15,6 +15,7 @@ import {
   type TranscriptionDoc,
 } from "../lib/transcription-storage";
 import { MemoStatus } from "./memo-editor";
+import { TranscriptionHelp } from "./transcription-help";
 import styles from "./transcription.module.css";
 
 export function Transcription() {
@@ -36,7 +37,7 @@ export function Transcription() {
       container?.style.setProperty("--visible-top", `${viewport?.offsetTop ?? 0}px`);
     }
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
+      if (event.key !== "Escape" || document.querySelector("dialog[open]")) return;
       if (document.activeElement instanceof HTMLElement && container?.contains(document.activeElement)) {
         document.activeElement.blur();
       }
@@ -66,32 +67,36 @@ export function Transcription() {
   }
 
   return (
-    <div ref={containerRef} className={`${styles.container} ${expanded ? styles.expanded : ""}`}>
+    <div data-transcription-help-root={expanded ? undefined : ""} ref={containerRef} className={`${styles.container} ${expanded ? styles.expanded : ""}`}>
       {expanded && (
         <div className={`${styles.compactToolbar} items-center gap-2 border-b px-3 py-1`}>
           <span className="mr-auto text-sm font-medium">필사</span>
-          <SaveStatus saving={saving} />
-          <Button variant="ghost" size="sm" onClick={() => setExpanded(false)}>
-            <Minimize2 aria-hidden="true" />화면 줄이기
+          <TranscriptionHelp key="expanded" expanded={expanded} />
+          <span data-transcription-help="autosave"><SaveStatus saving={saving} /></span>
+          <Button data-transcription-help="shrink" aria-label="화면 줄이기" title="화면 줄이기" variant="ghost" size="sm" onClick={() => setExpanded(false)}>
+            <Minimize2 aria-hidden="true" /><span className="hidden sm:inline">화면 줄이기</span>
           </Button>
         </div>
       )}
       <div className={`${styles.details} flex flex-wrap items-center gap-2 border-b px-4 py-2`}>
-        <a href={SOURCE_URL} target="_blank" rel="noreferrer" className="min-w-0 text-sm underline underline-offset-4">{SOURCE_TITLE} · 출처</a>
-        <SaveStatus saving={saving} className="ml-auto" />
-        <Button variant="ghost" size="sm" className="md:hidden" onClick={expand}>
-          <Maximize2 aria-hidden="true" />화면 넓게
-        </Button>
+        <a href={SOURCE_URL} target="_blank" rel="noreferrer" className="min-w-0 basis-full break-words text-sm underline md:basis-auto underline-offset-4">{SOURCE_TITLE} · 출처</a>
+        <div className="ml-auto flex items-center gap-1">
+          <TranscriptionHelp key="normal" expanded={false} />
+          <span data-transcription-help="autosave"><SaveStatus saving={saving} /></span>
+          <Button data-transcription-help="expand" aria-label="화면 넓게" title="화면 넓게" variant="ghost" size="sm" className="md:hidden" onClick={expand}>
+            <Maximize2 aria-hidden="true" /><span className="hidden sm:inline">화면 넓게</span>
+          </Button>
+        </div>
       </div>
       <div className={`${styles.panes} grid min-h-0 flex-1 grid-rows-2 md:grid-cols-2 md:grid-rows-1`}>
-        <section aria-label="필사 원문" className="flex min-h-0 min-w-0 flex-col border-b md:border-r md:border-b-0">
+        <section data-transcription-help="source" aria-label="필사 원문" className="flex min-h-0 min-w-0 flex-col border-b md:border-r md:border-b-0">
           <div className={`${styles.sourceToolbar} flex flex-wrap items-center gap-2 border-b px-4 py-2`}>
             <h2 className="mr-auto text-sm font-medium">원문</h2>
-            <Button variant="ghost" size="sm" disabled={!loaded} aria-pressed={editing} onClick={() => setEditing(!editing)}>
-              <Pencil aria-hidden="true" />{editing ? "편집 마치기" : "원문 편집"}
+            <Button data-transcription-help="edit" aria-label={editing ? "편집 마치기" : "원문 편집"} title={editing ? "편집 마치기" : "원문 편집"} variant="ghost" size="sm" disabled={!loaded} aria-pressed={editing} onClick={() => setEditing(!editing)}>
+              <Pencil aria-hidden="true" /><span className="hidden md:inline">{editing ? "편집 마치기" : "원문 편집"}</span>
             </Button>
-            <Button variant="ghost" size="sm" disabled={!loaded || !DEFAULT_SOURCE} onClick={() => setRestoreOpen(true)}>
-              <RotateCcw aria-hidden="true" />기본 원문 복원
+            <Button data-transcription-help="restore" aria-label="기본 원문 복원" title="기본 원문 복원" variant="ghost" size="sm" disabled={!loaded || !DEFAULT_SOURCE} onClick={() => setRestoreOpen(true)}>
+              <RotateCcw aria-hidden="true" /><span className="hidden md:inline">기본 원문 복원</span>
             </Button>
           </div>
           {editing ? (
@@ -104,9 +109,9 @@ export function Transcription() {
             </div>
           )}
         </section>
-        <section aria-label="필사 입력" className="flex min-h-0 min-w-0 flex-col">
-          <h2 className="border-b px-4 py-2 text-sm font-medium">필사</h2>
-          <textarea aria-label="필사 본문" onFocus={() => { if (window.matchMedia("(max-width: 767px)").matches) expand(); }} value={doc.text} readOnly={!loaded} spellCheck={false}
+        <section data-transcription-help="content" aria-label="필사 입력" className="flex min-h-0 min-w-0 flex-col">
+          <h2 className="shrink-0 border-b px-4 py-2 text-sm font-medium">필사</h2>
+          <textarea aria-label="필사 본문" onFocus={() => { if (window.matchMedia("(width < 48rem)").matches) expand(); }} value={doc.text} readOnly={!loaded} spellCheck={false}
             onChange={(event) => {
               update({ ...doc, text: event.target.value });
               setCursor(event.target.selectionStart);

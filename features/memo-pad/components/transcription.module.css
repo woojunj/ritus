@@ -5,11 +5,24 @@
   flex-direction: column;
 }
 
+.details,
+.sourceToolbar,
+.status {
+  flex-shrink: 0;
+}
+
 .compactToolbar {
   display: none;
 }
 
 @media (width < 48rem) {
+  /* 도구가 여러 줄이 되어도 본문을 누르지 않고, 화면 전체를 스크롤한다. */
+  .panes {
+    flex-shrink: 0;
+    min-height: 28rem;
+    grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
+  }
+
   .expanded {
     position: fixed;
     inset-inline: 0;
@@ -31,6 +44,8 @@
   }
 
   .expanded .panes {
+    min-height: 0;
+    flex-shrink: 1;
     grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
   }
 }
